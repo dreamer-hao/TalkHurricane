@@ -1,811 +1,239 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TalkHurricane — 多AI智能体会议系统</title>
+<title>TalkHurricane — Multi-AI Meeting System</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-  :root {
-    --bg: #050508;
-    --bg2: #0c0c14;
-    --bg3: #12121e;
-    --surface: #16162a;
-    --surface2: #1e1e38;
-    --border: rgba(120,100,255,0.15);
-    --border2: rgba(120,100,255,0.3);
-    --accent: #7c6dfa;
-    --accent2: #a78bfa;
-    --accent3: #38bdf8;
-    --gold: #f59e0b;
-    --danger: #f87171;
-    --success: #34d399;
-    --text: #e8e6ff;
-    --text2: #9990cc;
-    --text3: #5a5480;
-    --glow: rgba(124,109,250,0.4);
-    --font-display: 'Syne', sans-serif;
-    --font-body: 'Space Grotesk', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-  }
+:root {
+  --bg:#06060f; --bg2:#0d0d1a; --bg3:#131326; --surface:#18182e; --surface2:#20203a;
+  --border:rgba(130,110,255,0.12); --border2:rgba(130,110,255,0.28);
+  --accent:#7b68ee; --accent2:#a594f9; --accent3:#38bdf8;
+  --gold:#f59e0b; --danger:#f87171; --success:#34d399; --warn:#fb923c;
+  --text:#e8e6ff; --text2:#9d96cc; --text3:#52497a;
+  --glow:rgba(123,104,238,0.35);
+  --fd:'Syne',sans-serif; --fb:'Space Grotesk',sans-serif; --fm:'JetBrains Mono',monospace;
+  --r:8px; --r2:12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 15% -5%,rgba(123,104,238,.10) 0%,transparent 55%),radial-gradient(ellipse 55% 45% at 85% 105%,rgba(56,189,248,.07) 0%,transparent 50%);pointer-events:none;z-index:0}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.hidden{display:none!important}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; overflow: hidden; }
-  body {
-    font-family: var(--font-body);
-    background: var(--bg);
-    color: var(--text);
-    display: flex;
-    flex-direction: column;
-  }
+input[type=text],input[type=password],input[type=number],select,textarea{
+  width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);
+  color:var(--text);font-family:var(--fb);font-size:12px;padding:7px 10px;outline:none;transition:border-color .2s}
+input[type=text]:focus,input[type=password]:focus,input[type=number]:focus,select:focus,textarea:focus{border-color:var(--accent)}
+select option{background:var(--bg2)}
+textarea{resize:vertical;min-height:60px}
+input[type=range]{width:100%;accent-color:var(--accent)}
 
-  /* Animated background */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 20% -10%, rgba(124,109,250,0.12) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 50% at 80% 110%, rgba(56,189,248,0.08) 0%, transparent 50%),
-      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(167,139,250,0.04) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
-  }
+.btn{padding:7px 16px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--fb);font-size:13px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn:hover{background:var(--surface2);color:var(--text);border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent2);box-shadow:0 0 18px var(--glow)}
+.btn.danger{border-color:var(--danger);color:var(--danger)}
+.btn.danger:hover{background:rgba(248,113,113,.10)}
+.btn.success{border-color:var(--success);color:var(--success)}
+.btn.success:hover{background:rgba(52,211,153,.10)}
+.btn.warn{border-color:var(--warn);color:var(--warn)}
+.btn.warn:hover{background:rgba(251,146,60,.10)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
 
-  /* ── HEADER ── */
-  #header {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 20px;
-    border-bottom: 1px solid var(--border);
-    background: rgba(5,5,8,0.9);
-    backdrop-filter: blur(20px);
-    position: relative;
-    z-index: 100;
-  }
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-family: var(--font-display);
-    font-size: 20px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    color: var(--text);
-  }
-  .logo-icon {
-    width: 32px; height: 32px;
-    background: linear-gradient(135deg, var(--accent), var(--accent3));
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px;
-    box-shadow: 0 0 20px var(--glow);
-  }
-  .logo span { color: var(--accent2); }
-  .header-center {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .mode-badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    border: 1px solid var(--border2);
-    background: var(--surface);
-    color: var(--accent2);
-    display: none;
-  }
-  .status-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--success);
-    box-shadow: 0 0 8px var(--success);
-    animation: pulse 2s infinite;
-    display: none;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .btn-sm {
-    padding: 6px 14px;
-    border-radius: 8px;
-    border: 1px solid var(--border2);
-    background: transparent;
-    color: var(--text2);
-    font-family: var(--font-body);
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .btn-sm:hover { background: var(--surface2); color: var(--text); border-color: var(--accent); }
-  .btn-primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: white;
-  }
-  .btn-primary:hover { background: var(--accent2); box-shadow: 0 0 15px var(--glow); }
-  .btn-danger { border-color: var(--danger); color: var(--danger); }
-  .btn-danger:hover { background: rgba(248,113,113,0.1); }
-  .btn-success { border-color: var(--success); color: var(--success); }
-  .btn-success:hover { background: rgba(52,211,153,0.1); }
+.lbl{font-size:10px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;display:block}
+.flabel{font-size:12px;color:var(--text2);margin-bottom:5px;display:block}
+.fgroup{margin-bottom:14px}
 
-  /* ── MAIN LAYOUT ── */
-  #main {
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-    position: relative;
-    z-index: 1;
-  }
+/* HEADER */
+#hdr{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-bottom:1px solid var(--border);background:rgba(6,6,15,.92);backdrop-filter:blur(20px);z-index:200;gap:12px}
+.logo{display:flex;align-items:center;gap:9px;font-family:var(--fd);font-size:19px;font-weight:800;letter-spacing:-.5px;color:var(--text);flex-shrink:0}
+.logo-icon{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--accent3));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 0 18px var(--glow)}
+.logo em{color:var(--accent2);font-style:normal}
+.hdr-center{display:flex;align-items:center;gap:8px;flex:1;justify-content:center}
+.badge{padding:3px 11px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;border:1px solid var(--border2);background:var(--surface);color:var(--accent2)}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 7px var(--success);animation:blink-dot 2s infinite}
+@keyframes blink-dot{0%,100%{opacity:1}50%{opacity:.35}}
+.hdr-right{display:flex;align-items:center;gap:7px;flex-shrink:0;position:relative}
+.drop-wrap{position:relative}
+.drop-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:5px;min-width:168px;z-index:999;box-shadow:0 10px 35px rgba(0,0,0,.6);display:none}
+.drop-menu.open{display:block}
+.drop-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--text2);transition:all .2s}
+.drop-item:hover{background:var(--surface2);color:var(--text)}
 
-  /* ── SIDEBAR ── */
-  #sidebar {
-    width: 280px;
-    flex-shrink: 0;
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    background: rgba(12,12,20,0.8);
-    overflow-y: auto;
-  }
-  .sidebar-section {
-    padding: 16px;
-    border-bottom: 1px solid var(--border);
-  }
-  .sidebar-label {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: var(--text3);
-    margin-bottom: 10px;
-  }
+/* LAYOUT */
+#main{flex:1;display:flex;overflow:hidden;position:relative;z-index:1}
 
-  /* Mode selector */
-  .mode-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
-  .mode-card {
-    padding: 10px 8px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-  .mode-card:hover { border-color: var(--border2); background: var(--surface2); }
-  .mode-card.active { border-color: var(--accent); background: rgba(124,109,250,0.1); }
-  .mode-card.active::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at center, rgba(124,109,250,0.15), transparent 70%);
-    pointer-events: none;
-  }
-  .mode-emoji { font-size: 20px; display: block; margin-bottom: 4px; }
-  .mode-name { font-size: 11px; font-weight: 600; color: var(--text2); }
-  .mode-card.active .mode-name { color: var(--accent2); }
+/* SIDEBAR */
+#sidebar{width:268px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;background:rgba(13,13,26,.85);overflow-y:auto}
+.sb-sec{padding:14px;border-bottom:1px solid var(--border)}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.mode-card{padding:9px 6px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);cursor:pointer;text-align:center;transition:all .2s}
+.mode-card:hover{border-color:var(--border2);background:var(--surface2)}
+.mode-card.active{border-color:var(--accent);background:rgba(123,104,238,.11)}
+.mode-card .me{font-size:18px;display:block;margin-bottom:3px}
+.mode-card .mn{font-size:10px;font-weight:600;color:var(--text2)}
+.mode-card.active .mn{color:var(--accent2)}
+.agent-list{display:flex;flex-direction:column;gap:5px}
+.agent-card{padding:8px 10px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:9px;transition:border-color .2s}
+.agent-card.speaking{border-color:var(--accent);box-shadow:0 0 10px var(--glow)}
+.av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:var(--fd)}
+.agent-info{flex:1;min-width:0}
+.aname{font-size:12px;font-weight:600;color:var(--text)}
+.arole{font-size:10px;color:var(--text3)}
+.agent-btns{display:flex;gap:3px}
+.ibtn{width:20px;height:20px;border:none;background:transparent;color:var(--text3);cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .2s}
+.ibtn:hover{background:var(--surface2);color:var(--text)}
+.add-agent-btn{width:100%;padding:7px;border:1px dashed var(--border2);border-radius:var(--r);background:transparent;color:var(--text3);font-family:var(--fb);font-size:11px;cursor:pointer;transition:all .2s;margin-top:5px}
+.add-agent-btn:hover{border-color:var(--accent);color:var(--accent2)}
+.sr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sr-lbl{font-size:11px;color:var(--text2)}
+.sr-val{font-size:11px;font-weight:600;color:var(--accent2);font-family:var(--fm)}
+.toggle-wrap{display:flex;align-items:center;gap:5px}
+.toggle-wrap input[type=checkbox]{width:auto;accent-color:var(--accent);cursor:pointer}
+.toggle-wrap span{font-size:11px;color:var(--text3)}
 
-  /* Agent list */
-  .agent-list { display: flex; flex-direction: column; gap: 6px; }
-  .agent-item {
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-  }
-  .agent-item:hover { border-color: var(--border2); }
-  .agent-item.active-speaker { border-color: var(--accent); animation: speakPulse 1s infinite; }
-  @keyframes speakPulse {
-    0%, 100% { box-shadow: 0 0 0 0 var(--glow); }
-    50% { box-shadow: 0 0 10px 2px var(--glow); }
-  }
-  .agent-avatar {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    flex-shrink: 0;
-    font-weight: 700;
-    font-family: var(--font-display);
-  }
-  .agent-info { flex: 1; min-width: 0; }
-  .agent-name { font-size: 13px; font-weight: 600; color: var(--text); }
-  .agent-role { font-size: 11px; color: var(--text3); }
-  .agent-actions { display: flex; gap: 4px; }
-  .agent-btn {
-    width: 20px; height: 20px;
-    border: none;
-    background: transparent;
-    color: var(--text3);
-    cursor: pointer;
-    border-radius: 4px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px;
-    transition: all 0.2s;
-  }
-  .agent-btn:hover { background: var(--surface2); color: var(--text); }
+/* CENTER */
+#center{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#mode-bar{flex-shrink:0;padding:10px 16px;border-bottom:1px solid var(--border);background:rgba(13,13,26,.6);display:none}
+.dbar{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.dside{flex:1;text-align:center;font-size:11px;font-weight:600}
+.dside.pro{color:var(--accent2)}
+.dside.con{color:var(--accent3)}
+.wr-track{flex:2;height:7px;border-radius:4px;background:var(--surface2);overflow:hidden}
+.wr-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent3));transition:width 1s ease}
+.phase-dots{display:flex;gap:5px;justify-content:center}
+.pdot{width:7px;height:7px;border-radius:50%;border:1px solid var(--border2);background:transparent;transition:all .3s}
+.pdot.done{background:var(--accent);border-color:var(--accent)}
+.pdot.current{background:var(--gold);border-color:var(--gold);box-shadow:0 0 7px var(--gold)}
+#chat{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+.welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;gap:18px}
+.wt{font-family:var(--fd);font-size:30px;font-weight:800;background:linear-gradient(135deg,var(--text),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.ws{font-size:13px;color:var(--text3);max-width:380px;line-height:1.65}
+.qs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:480px;width:100%}
+.qs-card{padding:12px 8px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:all .2s;text-align:center}
+.qs-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.qs-card .qi{font-size:22px;margin-bottom:5px}
+.qs-card .ql{font-size:10px;color:var(--text2);line-height:1.4}
+.msg-group{display:flex;flex-direction:column;gap:3px;animation:fadeUp .25s ease}
+.msg-group.user-group{align-items:flex-end}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg-hdr{display:flex;align-items:center;gap:7px;margin-bottom:3px}
+.msg-hdr.right{justify-content:flex-end}
+.msg-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.msg-name{font-size:12px;font-weight:600}
+.msg-time{font-size:10px;color:var(--text3);font-family:var(--fm)}
+.rtag{font-size:9px;padding:1px 7px;border-radius:8px;border:1px solid var(--border2);color:var(--text3);font-family:var(--fm)}
+.bubble{background:var(--surface);border:1px solid var(--border);border-radius:4px 12px 12px 12px;padding:11px 14px;font-size:13px;line-height:1.7;color:var(--text);max-width:680px;word-break:break-word;position:relative}
+.bubble.user{background:rgba(123,104,238,.09);border-color:rgba(123,104,238,.22);border-radius:12px 4px 12px 12px}
+.bubble.streaming::after{content:'▋';color:var(--accent2);animation:cur .7s infinite}
+@keyframes cur{0%,100%{opacity:1}50%{opacity:0}}
+.msg-tags{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+.mtag{font-size:10px;padding:2px 8px;border-radius:8px;font-family:var(--fm);border:1px solid}
+.mtag.attack{background:rgba(248,113,113,.08);color:var(--danger);border-color:rgba(248,113,113,.25)}
+.mtag.support{background:rgba(52,211,153,.08);color:var(--success);border-color:rgba(52,211,153,.25)}
+.mtag.question{background:rgba(56,189,248,.08);color:var(--accent3);border-color:rgba(56,189,248,.25)}
+.mtag.idea{background:rgba(245,158,11,.08);color:var(--gold);border-color:rgba(245,158,11,.25)}
+.sys-msg{text-align:center;font-size:11px;color:var(--text3);font-family:var(--fm);padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface);align-self:center}
 
-  .btn-add-agent {
-    width: 100%;
-    padding: 8px;
-    border: 1px dashed var(--border2);
-    border-radius: 8px;
-    background: transparent;
-    color: var(--text3);
-    font-family: var(--font-body);
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-top: 6px;
-  }
-  .btn-add-agent:hover { border-color: var(--accent); color: var(--accent2); background: rgba(124,109,250,0.05); }
+/* INPUT BAR */
+#ibar{flex-shrink:0;padding:12px 18px;border-top:1px solid var(--border);background:rgba(6,6,15,.92);backdrop-filter:blur(20px)}
+.ibar-top{display:flex;gap:8px;margin-bottom:7px}
+.ibox{display:flex;gap:9px;align-items:flex-end;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r2);padding:9px 12px;transition:border-color .2s}
+.ibox:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(123,104,238,.10)}
+#uinput{flex:1;background:transparent;border:none;resize:none;color:var(--text);font-family:var(--fb);font-size:13px;line-height:1.5;max-height:110px;outline:none;padding:0}
+#uinput::placeholder{color:var(--text3)}
+.send-btn{width:34px;height:34px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;transition:all .2s}
+.send-btn:hover{background:var(--accent2);box-shadow:0 0 14px var(--glow)}
+.send-btn:disabled{opacity:.4;cursor:not-allowed}
+.ihint{font-size:10px;color:var(--text3);padding:0 2px;margin-top:5px}
 
-  /* Settings */
-  .setting-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
-  .setting-label { font-size: 12px; color: var(--text2); }
-  .setting-val { font-size: 12px; font-weight: 600; color: var(--accent2); font-family: var(--font-mono); }
-  input[type=range] {
-    width: 100%;
-    accent-color: var(--accent);
-    margin: 4px 0 8px;
-  }
-  select, input[type=text], input[type=number], textarea {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-radius: 6px;
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 12px;
-    padding: 6px 10px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  select:focus, input[type=text]:focus, input[type=number]:focus, textarea:focus {
-    border-color: var(--accent);
-  }
-  select option { background: var(--bg2); }
-  textarea { resize: vertical; min-height: 60px; }
+/* RIGHT PANEL */
+#rpanel{width:248px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;background:rgba(13,13,26,.85);overflow-y:auto}
+.rp-sec{padding:12px 14px;border-bottom:1px solid var(--border)}
+.rp-title{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text3);margin-bottom:9px}
+.timer-box{text-align:center;font-family:var(--fm);font-size:28px;font-weight:700;color:var(--accent2);padding:9px;border-radius:var(--r);background:var(--surface);border:1px solid var(--border);letter-spacing:4px}
+.timer-box.urgent{color:var(--danger);animation:urg .5s infinite}
+@keyframes urg{0%,100%{opacity:1}50%{opacity:.55}}
+.score-row{display:flex;align-items:center;margin-bottom:7px}
+.score-lbl{font-size:11px;color:var(--text2);width:50px;flex-shrink:0}
+.score-track{flex:1;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;margin:0 8px}
+.score-fill{height:100%;border-radius:2px;background:var(--accent);transition:width .5s ease}
+.score-num{font-size:10px;font-family:var(--fm);color:var(--accent2);width:26px;text-align:right}
+.emo-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.emo-item{padding:7px 8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);text-align:center}
+.emo-icon{font-size:16px;display:block}
+.emo-name{font-size:10px;color:var(--text3);margin-top:2px}
+.emo-who{font-size:10px;color:var(--text2);font-weight:600;margin-top:1px}
+.rel-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2);padding:4px 7px;border-radius:5px;background:var(--surface);margin-bottom:4px}
+.rel-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.sum-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:9px 11px;font-size:11px;color:var(--text2);line-height:1.65;white-space:pre-wrap;min-height:50px;word-break:break-word}
+.notes-box{font-size:11px;color:var(--text2);line-height:1.7;white-space:pre-wrap;word-break:break-word}
 
-  /* ── CENTER ── */
-  #center {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    min-width: 0;
-  }
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(6,6,15,.82);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:26px;width:500px;max-width:95vw;max-height:88vh;overflow-y:auto;transform:scale(.96);transition:transform .25s;box-shadow:0 0 60px rgba(123,104,238,.15)}
+.modal-bg.open .modal{transform:scale(1)}
+.modal-title{font-family:var(--fd);font-size:17px;font-weight:700;margin-bottom:18px}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.color-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px}
+.cswatch{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s}
+.cswatch.sel{border-color:#fff;transform:scale(1.15)}
+.ptag-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.ptag{padding:6px 9px;border-radius:6px;border:1px solid var(--border);background:var(--surface);font-size:11px;color:var(--text2);cursor:pointer;text-align:center;transition:all .2s}
+.ptag.sel{border-color:var(--accent);background:rgba(123,104,238,.10);color:var(--accent2)}
 
-  /* Mode-specific panel */
-  #mode-panel {
-    flex-shrink: 0;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    background: rgba(12,12,20,0.5);
-    display: none;
-  }
+/* API SETTINGS */
+.api-section{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);padding:12px 14px;margin-bottom:12px}
+.api-section-title{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:10px}
+.key-row{display:flex;gap:7px}
+.key-row input{flex:1;font-family:var(--fm);font-size:11px}
+.key-status{font-size:10px;margin-top:4px}
+.key-status.ok{color:var(--success)}
+.key-status.err{color:var(--danger)}
 
-  /* Debate scoreboard */
-  .debate-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 8px;
-  }
-  .debate-side {
-    flex: 1;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 600;
-  }
-  .debate-side.pro { color: var(--accent2); }
-  .debate-side.con { color: var(--accent3); }
-  .winrate-bar {
-    flex: 2;
-    height: 8px;
-    border-radius: 4px;
-    background: var(--surface2);
-    overflow: hidden;
-    position: relative;
-  }
-  .winrate-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--accent3));
-    transition: width 1s ease;
-  }
-  .round-indicator {
-    display: flex;
-    gap: 6px;
-    justify-content: center;
-  }
-  .round-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    border: 1px solid var(--border2);
-    background: transparent;
-    transition: all 0.3s;
-  }
-  .round-dot.done { background: var(--accent); border-color: var(--accent); }
-  .round-dot.current { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 8px var(--gold); }
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 16px;font-size:12px;color:var(--text);z-index:2000;box-shadow:0 8px 28px rgba(0,0,0,.45);transform:translateY(18px);opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-color:var(--success)}
+.toast.err{border-color:var(--danger)}
 
-  /* Chat area */
-  #chat-area {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    scroll-behavior: smooth;
-  }
-  #chat-area::-webkit-scrollbar { width: 4px; }
-  #chat-area::-webkit-scrollbar-track { background: transparent; }
-  #chat-area::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
-  .welcome-screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    text-align: center;
-    gap: 20px;
-    opacity: 0.7;
-  }
-  .welcome-title {
-    font-family: var(--font-display);
-    font-size: 32px;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--text), var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .welcome-sub { font-size: 14px; color: var(--text3); max-width: 400px; line-height: 1.6; }
-  .quick-start-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    max-width: 500px;
-    width: 100%;
-  }
-  .quick-card {
-    padding: 14px 10px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
-  }
-  .quick-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-  .quick-card .q-icon { font-size: 24px; margin-bottom: 6px; }
-  .quick-card .q-text { font-size: 11px; color: var(--text2); }
-
-  /* Message bubble */
-  .msg-group { display: flex; flex-direction: column; gap: 4px; animation: fadeUp 0.3s ease; }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .msg-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
-  }
-  .msg-avatar {
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-  .msg-name { font-size: 13px; font-weight: 600; }
-  .msg-time { font-size: 11px; color: var(--text3); font-family: var(--font-mono); }
-  .msg-round-tag {
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    border: 1px solid var(--border2);
-    color: var(--text3);
-    font-family: var(--font-mono);
-  }
-  .msg-bubble {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px 12px 12px 12px;
-    padding: 12px 16px;
-    font-size: 14px;
-    line-height: 1.65;
-    color: var(--text);
-    position: relative;
-    max-width: 720px;
-  }
-  .msg-bubble.user-msg {
-    background: rgba(124,109,250,0.08);
-    border-color: rgba(124,109,250,0.25);
-    border-radius: 12px 4px 12px 12px;
-    align-self: flex-end;
-  }
-  .msg-bubble.streaming::after {
-    content: '▋';
-    color: var(--accent2);
-    animation: blink 0.7s infinite;
-  }
-  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-  .msg-meta {
-    display: flex;
-    gap: 8px;
-    margin-top: 6px;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  .msg-tag {
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-family: var(--font-mono);
-  }
-  .msg-tag.attack { background: rgba(248,113,113,0.1); color: var(--danger); border: 1px solid rgba(248,113,113,0.3); }
-  .msg-tag.support { background: rgba(52,211,153,0.1); color: var(--success); border: 1px solid rgba(52,211,153,0.3); }
-  .msg-tag.question { background: rgba(56,189,248,0.1); color: var(--accent3); border: 1px solid rgba(56,189,248,0.3); }
-  .msg-tag.idea { background: rgba(245,158,11,0.1); color: var(--gold); border: 1px solid rgba(245,158,11,0.3); }
-  .ref-quote {
-    border-left: 2px solid var(--accent);
-    padding-left: 10px;
-    margin-bottom: 10px;
-    font-size: 12px;
-    color: var(--text3);
-    font-style: italic;
-  }
-
-  /* System message */
-  .sys-msg {
-    text-align: center;
-    font-size: 12px;
-    color: var(--text3);
-    font-family: var(--font-mono);
-    padding: 6px 14px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    align-self: center;
-  }
-
-  /* Input bar */
-  #input-bar {
-    flex-shrink: 0;
-    padding: 14px 20px;
-    border-top: 1px solid var(--border);
-    background: rgba(5,5,8,0.9);
-    backdrop-filter: blur(20px);
-  }
-  .input-wrap {
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-radius: 12px;
-    padding: 10px 14px;
-    transition: border-color 0.2s;
-  }
-  .input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,109,250,0.1); }
-  #user-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    resize: none;
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 14px;
-    line-height: 1.5;
-    max-height: 120px;
-    outline: none;
-    padding: 0;
-  }
-  .send-btn {
-    width: 36px; height: 36px;
-    border-radius: 8px;
-    border: none;
-    background: var(--accent);
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    flex-shrink: 0;
-    transition: all 0.2s;
-  }
-  .send-btn:hover { background: var(--accent2); box-shadow: 0 0 15px var(--glow); }
-  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .input-hint { font-size: 11px; color: var(--text3); margin-top: 6px; padding: 0 2px; }
-
-  /* ── RIGHT PANEL ── */
-  #right-panel {
-    width: 260px;
-    flex-shrink: 0;
-    border-left: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    background: rgba(12,12,20,0.8);
-    overflow-y: auto;
-  }
-  .panel-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
-  .panel-title { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; }
-
-  /* Scores */
-  .score-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-  }
-  .score-label { font-size: 12px; color: var(--text2); }
-  .score-bar-wrap { flex: 1; margin: 0 10px; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
-  .score-bar { height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.5s ease; }
-  .score-num { font-size: 11px; font-family: var(--font-mono); color: var(--accent2); width: 28px; text-align: right; }
-
-  /* Summary box */
-  .summary-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-size: 12px;
-    color: var(--text2);
-    line-height: 1.6;
-    white-space: pre-wrap;
-    min-height: 60px;
-  }
-
-  /* Emotion display */
-  .emotion-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
-  .emotion-item {
-    padding: 8px 10px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    text-align: center;
-  }
-  .emotion-icon { font-size: 18px; display: block; }
-  .emotion-name { font-size: 10px; color: var(--text3); margin-top: 2px; }
-
-  /* Timer */
-  .timer-display {
-    text-align: center;
-    font-family: var(--font-mono);
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--accent2);
-    padding: 10px;
-    border-radius: 8px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    letter-spacing: 4px;
-  }
-  .timer-display.urgent { color: var(--danger); animation: urgentPulse 0.5s infinite; }
-  @keyframes urgentPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-
-  /* Relation graph mini */
-  .relation-list { display: flex; flex-direction: column; gap: 4px; }
-  .relation-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    color: var(--text2);
-    padding: 4px 8px;
-    border-radius: 6px;
-    background: var(--surface);
-  }
-  .rel-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-
-  /* Meeting notes */
-  .notes-area {
-    font-size: 12px;
-    color: var(--text2);
-    line-height: 1.7;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-
-  /* ── MODAL ── */
-  .modal-bg {
-    position: fixed;
-    inset: 0;
-    background: rgba(5,5,8,0.8);
-    backdrop-filter: blur(8px);
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
-  }
-  .modal-bg.open { opacity: 1; pointer-events: all; }
-  .modal {
-    background: var(--bg2);
-    border: 1px solid var(--border2);
-    border-radius: 16px;
-    padding: 28px;
-    width: 480px;
-    max-width: 95vw;
-    max-height: 85vh;
-    overflow-y: auto;
-    transform: scale(0.95);
-    transition: transform 0.3s;
-    box-shadow: 0 0 60px rgba(124,109,250,0.15);
-  }
-  .modal-bg.open .modal { transform: scale(1); }
-  .modal-title {
-    font-family: var(--font-display);
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: var(--text);
-  }
-  .form-group { margin-bottom: 14px; }
-  .form-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; display: block; }
-  .color-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-  .color-swatch {
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: all 0.2s;
-  }
-  .color-swatch.selected { border-color: white; transform: scale(1.15); }
-  .personality-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .personality-tag {
-    padding: 6px 10px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    font-size: 11px;
-    color: var(--text2);
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.2s;
-  }
-  .personality-tag.selected { border-color: var(--accent); background: rgba(124,109,250,0.1); color: var(--accent2); }
-  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
-
-  /* ── EXPORT MENU ── */
-  .export-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: var(--bg2);
-    border: 1px solid var(--border2);
-    border-radius: 10px;
-    padding: 6px;
-    min-width: 160px;
-    z-index: 200;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-    display: none;
-  }
-  .export-menu.open { display: block; }
-  .export-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-    color: var(--text2);
-    transition: all 0.2s;
-  }
-  .export-item:hover { background: var(--surface2); color: var(--text); }
-
-  /* Notification toast */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: var(--surface2);
-    border: 1px solid var(--border2);
-    border-radius: 10px;
-    padding: 12px 18px;
-    font-size: 13px;
-    color: var(--text);
-    z-index: 2000;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-    transform: translateY(20px);
-    opacity: 0;
-    transition: all 0.3s;
-  }
-  .toast.show { transform: translateY(0); opacity: 1; }
-  .toast.success { border-color: var(--success); }
-  .toast.error { border-color: var(--danger); }
-
-  /* ── SCROLLBAR GLOBAL ── */
-  ::-webkit-scrollbar { width: 4px; height: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
-  /* Responsive tweaks */
-  @media (max-width: 1100px) { #right-panel { display: none; } }
-  @media (max-width: 800px) { #sidebar { width: 220px; } }
-
-  .hidden { display: none !important; }
-  .tag-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 10px;
-    border: 1px solid;
-    font-family: var(--font-mono);
-  }
+@media(max-width:1050px){#rpanel{display:none}}
+@media(max-width:780px){#sidebar{width:210px}}
+@media(max-width:580px){#sidebar{display:none}}
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
-<div id="header">
+<div id="hdr">
   <div class="logo">
     <div class="logo-icon">🌀</div>
-    Talk<span>Hurricane</span>
+    Talk<em>Hurricane</em>
   </div>
-  <div class="header-center">
-    <div class="status-dot" id="statusDot"></div>
-    <div class="mode-badge" id="modeBadge">会议中</div>
-    <div id="roundLabel" style="font-size:12px;color:var(--text3);font-family:var(--font-mono);display:none;"></div>
+  <div class="hdr-center">
+    <div class="status-dot hidden" id="statusDot"></div>
+    <div class="badge hidden" id="modeBadge"></div>
+    <div id="roundLbl" class="hidden" style="font-size:11px;color:var(--text3);font-family:var(--fm)"></div>
   </div>
-  <div class="header-right" style="position:relative;">
-    <button class="btn-sm" id="btnSummary" onclick="generateSummary()" style="display:none">📋 摘要</button>
-    <button class="btn-sm btn-danger" id="btnStop" onclick="stopMeeting()" style="display:none">⏹ 停止</button>
-    <button class="btn-sm btn-success" id="btnStart" onclick="startMeeting()">▶ 开始会议</button>
-    <div style="position:relative;">
-      <button class="btn-sm" onclick="toggleExport()" id="btnExport">导出 ▾</button>
-      <div class="export-menu" id="exportMenu">
-        <div class="export-item" onclick="exportMarkdown()">📄 导出 Markdown</div>
-        <div class="export-item" onclick="exportJSON()">📦 导出 JSON</div>
-        <div class="export-item" onclick="exportTXT()">📝 导出 TXT</div>
-        <div class="export-item" onclick="saveToFirebase()">☁️ 保存到云端</div>
+  <div class="hdr-right">
+    <button class="btn warn hidden"   id="btnSummary"  onclick="TH.generateSummary()">📋 Summary</button>
+    <button class="btn danger hidden" id="btnStop"     onclick="TH.stopMeeting()">⏹ Stop</button>
+    <button class="btn success"       id="btnStart"    onclick="TH.startMeeting()">▶ Start</button>
+    <button class="btn"               id="btnSettings" onclick="TH.openModal('settingsModal')">⚙ Settings</button>
+    <div class="drop-wrap">
+      <button class="btn" id="exportBtn" onclick="TH.toggleExport()">Export ▾</button>
+      <div class="drop-menu" id="exportMenu">
+        <div class="drop-item" onclick="TH.exportMD()">📄 Markdown</div>
+        <div class="drop-item" onclick="TH.exportJSON()">📦 JSON</div>
+        <div class="drop-item" onclick="TH.exportTXT()">📝 Plain Text</div>
+        <div class="drop-item" onclick="TH.saveCloud()">☁️ Save to Cloud</div>
       </div>
     </div>
   </div>
@@ -814,297 +242,374 @@
 <!-- MAIN -->
 <div id="main">
 
-  <!-- SIDEBAR -->
-  <div id="sidebar">
-
-    <!-- Mode -->
-    <div class="sidebar-section">
-      <div class="sidebar-label">会议模式</div>
-      <div class="mode-grid">
-        <div class="mode-card active" onclick="setMode('brainstorm')" data-mode="brainstorm">
-          <span class="mode-emoji">💡</span>
-          <span class="mode-name">灵感风暴</span>
-        </div>
-        <div class="mode-card" onclick="setMode('debate')" data-mode="debate">
-          <span class="mode-emoji">⚔️</span>
-          <span class="mode-name">辩论赛</span>
-        </div>
-        <div class="mode-card" onclick="setMode('roundtable')" data-mode="roundtable">
-          <span class="mode-emoji">🗂️</span>
-          <span class="mode-name">圆桌会议</span>
-        </div>
-        <div class="mode-card" onclick="setMode('court')" data-mode="court">
-          <span class="mode-emoji">⚖️</span>
-          <span class="mode-name">法庭模式</span>
-        </div>
-        <div class="mode-card" onclick="setMode('werewolf')" data-mode="werewolf">
-          <span class="mode-emoji">🐺</span>
-          <span class="mode-name">狼人杀</span>
-        </div>
-        <div class="mode-card" onclick="setMode('story')" data-mode="story">
-          <span class="mode-emoji">🌌</span>
-          <span class="mode-name">剧情模拟</span>
-        </div>
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sb-sec">
+    <span class="lbl">Meeting Mode</span>
+    <div class="mode-grid" id="modeGrid">
+      <div class="mode-card active" data-mode="brainstorm" onclick="TH.setMode('brainstorm')">
+        <span class="me">💡</span><span class="mn">Brainstorm</span>
       </div>
-    </div>
-
-    <!-- Topic -->
-    <div class="sidebar-section">
-      <div class="sidebar-label">会议主题</div>
-      <input type="text" id="topicInput" placeholder="输入讨论主题..." value="人工智能是否会取代人类工作？">
-      <div style="margin-top:8px;">
-        <div class="sidebar-label">语言</div>
-        <select id="langSelect">
-          <option value="zh">中文</option>
-          <option value="en">English</option>
-          <option value="bilingual">中英双语</option>
-        </select>
+      <div class="mode-card" data-mode="debate" onclick="TH.setMode('debate')">
+        <span class="me">⚔️</span><span class="mn">Debate</span>
       </div>
-    </div>
-
-    <!-- Agents -->
-    <div class="sidebar-section" style="flex:1;">
-      <div class="sidebar-label">AI 参与者</div>
-      <div class="agent-list" id="agentList"></div>
-      <button class="btn-add-agent" onclick="openAddAgent()">+ 添加 AI 参与者</button>
-    </div>
-
-    <!-- Settings -->
-    <div class="sidebar-section">
-      <div class="sidebar-label">会议设置</div>
-      <div class="setting-row">
-        <span class="setting-label">发言轮数</span>
-        <span class="setting-val" id="roundsVal">3</span>
+      <div class="mode-card" data-mode="roundtable" onclick="TH.setMode('roundtable')">
+        <span class="me">🗂️</span><span class="mn">Roundtable</span>
       </div>
-      <input type="range" id="roundsSlider" min="1" max="10" value="3"
-        oninput="document.getElementById('roundsVal').textContent=this.value">
-      <div class="setting-row">
-        <span class="setting-label">每次最大Token</span>
-        <span class="setting-val" id="maxTokensVal">300</span>
+      <div class="mode-card" data-mode="court" onclick="TH.setMode('court')">
+        <span class="me">⚖️</span><span class="mn">Court</span>
       </div>
-      <input type="range" id="maxTokensSlider" min="100" max="800" step="50" value="300"
-        oninput="document.getElementById('maxTokensVal').textContent=this.value">
-      <div class="setting-row" style="margin-top:6px;">
-        <span class="setting-label">允许打断</span>
-        <label style="cursor:pointer;display:flex;align-items:center;gap:6px;">
-          <input type="checkbox" id="allowInterrupt" style="width:auto;accent-color:var(--accent)"> 
-          <span style="font-size:12px;color:var(--text3)">开启</span>
-        </label>
+      <div class="mode-card" data-mode="werewolf" onclick="TH.setMode('werewolf')">
+        <span class="me">🐺</span><span class="mn">Werewolf</span>
       </div>
-      <div class="setting-row">
-        <span class="setting-label">自动摘要</span>
-        <label style="cursor:pointer;display:flex;align-items:center;gap:6px;">
-          <input type="checkbox" id="autoSummary" checked style="width:auto;accent-color:var(--accent)">
-          <span style="font-size:12px;color:var(--text3)">开启</span>
-        </label>
+      <div class="mode-card" data-mode="story" onclick="TH.setMode('story')">
+        <span class="me">🌌</span><span class="mn">Story Sim</span>
       </div>
-    </div>
-
-  </div>
-
-  <!-- CENTER -->
-  <div id="center">
-
-    <!-- Mode-specific panel -->
-    <div id="mode-panel">
-      <!-- Debate panel -->
-      <div id="debatePanel" class="hidden">
-        <div class="debate-bar">
-          <div class="debate-side pro" id="proLabel">正方</div>
-          <div class="winrate-bar">
-            <div class="winrate-fill" id="winrateFill" style="width:50%"></div>
-          </div>
-          <div class="debate-side con" id="conLabel">反方</div>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div class="round-indicator" id="roundIndicator"></div>
-          <div style="font-size:11px;color:var(--text3);font-family:var(--font-mono)" id="debatePhase">立论阶段</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Chat -->
-    <div id="chat-area">
-      <div class="welcome-screen" id="welcomeScreen">
-        <div style="font-size:48px;filter:drop-shadow(0 0 20px rgba(124,109,250,0.5))">🌀</div>
-        <div class="welcome-title">TalkHurricane</div>
-        <div class="welcome-sub">多AI智能体实时会议系统 — 配置好AI参与者，选择会议模式，开始你的智能体讨论</div>
-        <div class="quick-start-grid">
-          <div class="quick-card" onclick="quickStart('ai_future')">
-            <div class="q-icon">🤖</div>
-            <div class="q-text">AI取代人类之辩</div>
-          </div>
-          <div class="quick-card" onclick="quickStart('climate')">
-            <div class="q-icon">🌍</div>
-            <div class="q-text">气候变化圆桌</div>
-          </div>
-          <div class="quick-card" onclick="quickStart('startup')">
-            <div class="q-icon">🚀</div>
-            <div class="q-text">创业点子风暴</div>
-          </div>
-          <div class="quick-card" onclick="quickStart('philosophy')">
-            <div class="q-icon">🧠</div>
-            <div class="q-text">哲学辩论</div>
-          </div>
-          <div class="quick-card" onclick="quickStart('werewolf')">
-            <div class="q-icon">🐺</div>
-            <div class="q-text">AI狼人杀</div>
-          </div>
-          <div class="quick-card" onclick="quickStart('court')">
-            <div class="q-icon">⚖️</div>
-            <div class="q-text">AI法庭审判</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Input bar -->
-    <div id="input-bar">
-      <div class="input-wrap">
-        <textarea id="user-input" rows="1" placeholder="输入消息，引导讨论方向... (Enter发送，Shift+Enter换行)"
-          onkeydown="handleInputKey(event)" oninput="autoResize(this)"></textarea>
-        <button class="send-btn" id="sendBtn" onclick="sendUserMessage()">↑</button>
-      </div>
-      <div class="input-hint" id="inputHint">主持人模式 — 您可以随时介入讨论，点名发言或提出新议题</div>
     </div>
   </div>
 
-  <!-- RIGHT PANEL -->
-  <div id="right-panel">
+  <div class="sb-sec" style="flex:1">
+    <span class="lbl">AI Participants</span>
+    <div class="agent-list" id="agentList"></div>
+    <button class="add-agent-btn" onclick="TH.openAddAgent()">＋ Add AI Participant</button>
+  </div>
 
-    <!-- Timer -->
-    <div class="panel-section" id="timerSection">
-      <div class="panel-title">⏱ 计时器</div>
-      <div class="timer-display" id="timerDisplay">00:00</div>
-      <div style="display:flex;gap:6px;margin-top:8px;">
-        <button class="btn-sm" onclick="resetTimer()" style="flex:1;font-size:11px;">重置</button>
-        <button class="btn-sm" onclick="toggleTimer()" style="flex:1;font-size:11px;" id="timerBtn">启动</button>
+  <div class="sb-sec">
+    <span class="lbl">Meeting Settings</span>
+    <div class="sr">
+      <span class="sr-lbl">Rounds</span>
+      <span class="sr-val" id="roundsVal">3</span>
+    </div>
+    <input type="range" min="1" max="10" value="3" id="roundsSlider"
+      oninput="document.getElementById('roundsVal').textContent=this.value">
+    <div class="sr" style="margin-top:8px">
+      <span class="sr-lbl">Max Tokens</span>
+      <span class="sr-val" id="maxTokVal">300</span>
+    </div>
+    <input type="range" min="100" max="800" step="50" value="300" id="maxTokSlider"
+      oninput="document.getElementById('maxTokVal').textContent=this.value">
+    <div class="sr" style="margin-top:8px">
+      <span class="sr-lbl">Auto Summary</span>
+      <div class="toggle-wrap">
+        <input type="checkbox" id="chkAutoSum" checked>
+        <span>On</span>
       </div>
     </div>
-
-    <!-- Scores (debate/court mode) -->
-    <div class="panel-section" id="scoresSection">
-      <div class="panel-title">📊 评分板</div>
-      <div id="scoresList">
-        <div class="score-row">
-          <span class="score-label">逻辑性</span>
-          <div class="score-bar-wrap"><div class="score-bar" id="scoreLogic" style="width:60%"></div></div>
-          <span class="score-num" id="scoreLogicNum">6.0</span>
-        </div>
-        <div class="score-row">
-          <span class="score-label">感染力</span>
-          <div class="score-bar-wrap"><div class="score-bar" id="scoreEmotion" style="width:70%;background:var(--accent3)"></div></div>
-          <span class="score-num" id="scoreEmotionNum">7.0</span>
-        </div>
-        <div class="score-row">
-          <span class="score-label">证据力</span>
-          <div class="score-bar-wrap"><div class="score-bar" id="scoreEvidence" style="width:50%;background:var(--gold)"></div></div>
-          <span class="score-num" id="scoreEvidenceNum">5.0</span>
-        </div>
-        <div class="score-row">
-          <span class="score-label">创意性</span>
-          <div class="score-bar-wrap"><div class="score-bar" id="scoreCreative" style="width:80%;background:var(--success)"></div></div>
-          <span class="score-num" id="scoreCreativeNum">8.0</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Emotions -->
-    <div class="panel-section" id="emotionsSection">
-      <div class="panel-title">💭 情绪状态</div>
-      <div class="emotion-grid" id="emotionGrid"></div>
-    </div>
-
-    <!-- Relations -->
-    <div class="panel-section" id="relationsSection">
-      <div class="panel-title">🕸 关系图谱</div>
-      <div class="relation-list" id="relationList">
-        <div style="font-size:11px;color:var(--text3)">会议开始后更新...</div>
-      </div>
-    </div>
-
-    <!-- Summary -->
-    <div class="panel-section">
-      <div class="panel-title">📝 会议摘要</div>
-      <div class="summary-box" id="summaryBox">等待会议开始...</div>
-    </div>
-
-    <!-- Meeting notes -->
-    <div class="panel-section">
-      <div class="panel-title">🗒 待办事项</div>
-      <div class="notes-area" id="notesArea">— 暂无</div>
-    </div>
-
   </div>
 </div>
 
-<!-- ADD AGENT MODAL -->
-<div class="modal-bg" id="agentModal">
-  <div class="modal">
-    <div class="modal-title" id="agentModalTitle">添加 AI 参与者</div>
-    <div class="form-group">
-      <label class="form-label">名称</label>
-      <input type="text" id="agentName" placeholder="例如：理性派 Alex">
+<!-- CENTER -->
+<div id="center">
+  <div id="mode-bar">
+    <div class="dbar">
+      <div class="dside pro">Pro</div>
+      <div class="wr-track"><div class="wr-fill" id="wrFill" style="width:50%"></div></div>
+      <div class="dside con">Con</div>
     </div>
-    <div class="form-group">
-      <label class="form-label">角色定位</label>
-      <input type="text" id="agentRole" placeholder="例如：理性分析者、激进倡导者...">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="phase-dots" id="phaseDots"></div>
+      <span style="font-size:10px;color:var(--text3);font-family:var(--fm)" id="phaseLabel">Opening</span>
     </div>
-    <div class="form-group">
-      <label class="form-label">头像颜色</label>
-      <div class="color-row" id="colorRow">
-        <div class="color-swatch selected" style="background:#7c6dfa" data-color="#7c6dfa" onclick="selectColor(this)"></div>
-        <div class="color-swatch" style="background:#38bdf8" data-color="#38bdf8" onclick="selectColor(this)"></div>
-        <div class="color-swatch" style="background:#34d399" data-color="#34d399" onclick="selectColor(this)"></div>
-        <div class="color-swatch" style="background:#f59e0b" data-color="#f59e0b" onclick="selectColor(this)"></div>
-        <div class="color-swatch" style="background:#f87171" data-color="#f87171" onclick="selectColor(this)"></div>
-        <div class="color-swatch" style="background:#a78bfa" data-color="#a78bfa" onclick="selectColor(this)"></div>
-        <div class="color-swatch" style="background:#fb923c" data-color="#fb923c" onclick="selectColor(this)"></div>
-        <div class="color-swatch" style="background:#e879f9" data-color="#e879f9" onclick="selectColor(this)"></div>
+  </div>
+
+  <div id="chat">
+    <div class="welcome" id="welcome">
+      <div style="font-size:44px;filter:drop-shadow(0 0 18px rgba(123,104,238,.5))">🌀</div>
+      <div class="wt">TalkHurricane</div>
+      <div class="ws">Multi-AI real-time meeting system. Configure your agents, choose a mode, and start an intelligent discussion.</div>
+      <div class="qs-grid">
+        <div class="qs-card" onclick="TH.quickStart('ai_future')">
+          <div class="qi">🤖</div><div class="ql">AI vs Human Jobs Debate</div>
+        </div>
+        <div class="qs-card" onclick="TH.quickStart('climate')">
+          <div class="qi">🌍</div><div class="ql">Climate Change Roundtable</div>
+        </div>
+        <div class="qs-card" onclick="TH.quickStart('startup')">
+          <div class="qi">🚀</div><div class="ql">Startup Idea Brainstorm</div>
+        </div>
+        <div class="qs-card" onclick="TH.quickStart('philosophy')">
+          <div class="qi">🧠</div><div class="ql">Philosophy Debate</div>
+        </div>
+        <div class="qs-card" onclick="TH.quickStart('werewolf')">
+          <div class="qi">🐺</div><div class="ql">AI Werewolf Game</div>
+        </div>
+        <div class="qs-card" onclick="TH.quickStart('court')">
+          <div class="qi">⚖️</div><div class="ql">AI Courtroom Trial</div>
+        </div>
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">人格特质（可多选）</label>
-      <div class="personality-grid" id="personalityGrid">
-        <div class="personality-tag" onclick="togglePersonality(this)">🧠 理性分析</div>
-        <div class="personality-tag" onclick="togglePersonality(this)">🔥 激进进取</div>
-        <div class="personality-tag" onclick="togglePersonality(this)">🎨 创意发散</div>
-        <div class="personality-tag" onclick="togglePersonality(this)">🛡️ 保守稳健</div>
-        <div class="personality-tag" onclick="togglePersonality(this)">😄 幽默风趣</div>
-        <div class="personality-tag" onclick="togglePersonality(this)">🎭 情绪感染</div>
-        <div class="personality-tag" onclick="togglePersonality(this)">🔍 批判质疑</div>
-        <div class="personality-tag" onclick="togglePersonality(this)">🤝 协调中立</div>
-        <div class="personality-tag" onclick="togglePersonality(this)">📊 数据导向</div>
-        <div class="personality-tag" onclick="togglePersonality(this)">🌍 全球视野</div>
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">立场 / 辩论阵营</label>
-      <select id="agentStance">
-        <option value="neutral">中立</option>
-        <option value="pro">正方 / 支持</option>
-        <option value="con">反方 / 反对</option>
-        <option value="judge">评委 / 裁判</option>
-        <option value="moderator">主持人</option>
+  </div>
+
+  <div id="ibar">
+    <div class="ibar-top">
+      <select id="topicSelect" style="flex:1" onchange="TH.onTopicChange()">
+        <option value="custom">✏️ Custom topic...</option>
+        <option value="Will AI replace most human jobs?">🤖 Will AI replace most human jobs?</option>
+        <option value="How should nations balance growth and emissions reduction?">🌍 Growth vs emissions reduction</option>
+        <option value="Design a world-changing product for Gen Z">🚀 World-changing product for Gen Z</option>
+        <option value="Does free will truly exist?">🧠 Does free will truly exist?</option>
+        <option value="Is social media harmful to democracy?">📱 Social media &amp; democracy</option>
+        <option value="Should universal basic income be implemented globally?">💰 Universal Basic Income debate</option>
+        <option value="The ethics of human genetic engineering">🧬 Ethics of genetic engineering</option>
+        <option value="Can nuclear energy solve the climate crisis?">☢️ Nuclear energy &amp; climate</option>
+        <option value="Is capitalism the best economic system?">💹 Capitalism debate</option>
+        <option value="A village is threatened by werewolves — who are the wolves?">🐺 Village werewolf mystery</option>
+        <option value="Tech company trial: accused of illegal data collection">⚖️ Tech company data trial</option>
+      </select>
+      <select id="langSelect" style="width:130px">
+        <option value="en">🌐 English</option>
+        <option value="zh">🇨🇳 中文</option>
+        <option value="bilingual">🔀 Bilingual</option>
       </select>
     </div>
-    <div class="form-group">
-      <label class="form-label">自定义 Prompt（可选）</label>
-      <textarea id="agentPrompt" placeholder="给这个AI更详细的人格设定，例如：你是一位硅谷技术乐观主义者，坚信技术能解决一切问题..."></textarea>
+    <div id="customTopicWrap" class="hidden" style="margin-bottom:7px">
+      <input type="text" id="customTopic" placeholder="Enter your discussion topic...">
     </div>
-    <div class="form-group">
-      <label class="form-label">Temperature（创意程度）</label>
-      <div class="setting-row">
-        <span class="setting-label">严谨</span>
-        <input type="range" id="agentTemp" min="0" max="10" value="7" style="flex:1;margin:0 10px;"
-          oninput="document.getElementById('agentTempVal').textContent=(this.value/10).toFixed(1)">
-        <span class="setting-val" id="agentTempVal">0.7</span>
-        <span class="setting-label" style="margin-left:6px;">创意</span>
+    <div class="ibox">
+      <textarea id="uinput" rows="1"
+        placeholder="Guide the discussion… (Enter to send, Shift+Enter for newline)"
+        onkeydown="TH.handleKey(event)" oninput="TH.resize(this)"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="TH.sendUser()">↑</button>
+    </div>
+    <div class="ihint">Host mode — intervene anytime, call on agents, or introduce new questions</div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div id="rpanel">
+  <div class="rp-sec">
+    <div class="rp-title">⏱ Timer</div>
+    <div class="timer-box" id="timerBox">00:00</div>
+    <div style="display:flex;gap:5px;margin-top:7px">
+      <button class="btn" style="flex:1;font-size:11px" onclick="TH.resetTimer()">Reset</button>
+      <button class="btn" style="flex:1;font-size:11px" id="timerBtn" onclick="TH.toggleTimer()">Start</button>
+    </div>
+  </div>
+  <div class="rp-sec">
+    <div class="rp-title">📊 Scores</div>
+    <div class="score-row">
+      <span class="score-lbl">Logic</span>
+      <div class="score-track"><div class="score-fill" id="sfLogic" style="width:50%"></div></div>
+      <span class="score-num" id="snLogic">5.0</span>
+    </div>
+    <div class="score-row">
+      <span class="score-lbl">Emotion</span>
+      <div class="score-track"><div class="score-fill" id="sfEmotion" style="width:50%;background:var(--accent3)"></div></div>
+      <span class="score-num" id="snEmotion">5.0</span>
+    </div>
+    <div class="score-row">
+      <span class="score-lbl">Evidence</span>
+      <div class="score-track"><div class="score-fill" id="sfEvidence" style="width:50%;background:var(--gold)"></div></div>
+      <span class="score-num" id="snEvidence">5.0</span>
+    </div>
+    <div class="score-row">
+      <span class="score-lbl">Creative</span>
+      <div class="score-track"><div class="score-fill" id="sfCreative" style="width:50%;background:var(--success)"></div></div>
+      <span class="score-num" id="snCreative">5.0</span>
+    </div>
+  </div>
+  <div class="rp-sec">
+    <div class="rp-title">💭 Emotions</div>
+    <div class="emo-grid" id="emoGrid"><span style="font-size:11px;color:var(--text3)">Start meeting…</span></div>
+  </div>
+  <div class="rp-sec">
+    <div class="rp-title">🕸 Relations</div>
+    <div id="relList"><span style="font-size:11px;color:var(--text3)">No data yet…</span></div>
+  </div>
+  <div class="rp-sec">
+    <div class="rp-title">📝 Summary</div>
+    <div class="sum-box" id="sumBox">Waiting for meeting…</div>
+  </div>
+  <div class="rp-sec">
+    <div class="rp-title">🗒 Action Items</div>
+    <div class="notes-box" id="notesBox">— None yet</div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- AGENT MODAL -->
+<div class="modal-bg" id="agentModal">
+  <div class="modal">
+    <div class="modal-title" id="agentModalTitle">Add AI Participant</div>
+    <div class="fgroup">
+      <label class="flabel">Name</label>
+      <input type="text" id="aName" placeholder="e.g. Rational Alex">
+    </div>
+    <div class="fgroup">
+      <label class="flabel">Role</label>
+      <input type="text" id="aRole" placeholder="e.g. Systems Analyst, Devil's Advocate…">
+    </div>
+    <div class="fgroup">
+      <label class="flabel">Avatar Color</label>
+      <div class="color-row" id="colorRow">
+        <div class="cswatch sel" style="background:#7b68ee" data-c="#7b68ee" onclick="TH.pickColor(this)"></div>
+        <div class="cswatch"     style="background:#38bdf8" data-c="#38bdf8" onclick="TH.pickColor(this)"></div>
+        <div class="cswatch"     style="background:#34d399" data-c="#34d399" onclick="TH.pickColor(this)"></div>
+        <div class="cswatch"     style="background:#f59e0b" data-c="#f59e0b" onclick="TH.pickColor(this)"></div>
+        <div class="cswatch"     style="background:#f87171" data-c="#f87171" onclick="TH.pickColor(this)"></div>
+        <div class="cswatch"     style="background:#a594f9" data-c="#a594f9" onclick="TH.pickColor(this)"></div>
+        <div class="cswatch"     style="background:#fb923c" data-c="#fb923c" onclick="TH.pickColor(this)"></div>
+        <div class="cswatch"     style="background:#e879f9" data-c="#e879f9" onclick="TH.pickColor(this)"></div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn-sm" onclick="closeModal('agentModal')">取消</button>
-      <button class="btn-sm btn-primary" onclick="saveAgent()">保存</button>
+    <div class="fgroup">
+      <label class="flabel">Personality Traits (multi-select)</label>
+      <div class="ptag-grid" id="ptagGrid">
+        <div class="ptag" onclick="TH.togglePtag(this)">🧠 Rational</div>
+        <div class="ptag" onclick="TH.togglePtag(this)">🔥 Aggressive</div>
+        <div class="ptag" onclick="TH.togglePtag(this)">🎨 Creative</div>
+        <div class="ptag" onclick="TH.togglePtag(this)">🛡️ Conservative</div>
+        <div class="ptag" onclick="TH.togglePtag(this)">😄 Humorous</div>
+        <div class="ptag" onclick="TH.togglePtag(this)">🎭 Emotional</div>
+        <div class="ptag" onclick="TH.togglePtag(this)">🔍 Critical</div>
+        <div class="ptag" onclick="TH.togglePtag(this)">🤝 Mediator</div>
+        <div class="ptag" onclick="TH.togglePtag(this)">📊 Data-driven</div>
+        <div class="ptag" onclick="TH.togglePtag(this)">🌍 Global view</div>
+      </div>
+    </div>
+    <div class="fgroup">
+      <label class="flabel">Stance / Debate Side</label>
+      <select id="aStance">
+        <option value="neutral">Neutral</option>
+        <option value="pro">Pro / For</option>
+        <option value="con">Con / Against</option>
+        <option value="judge">Judge / Referee</option>
+        <option value="moderator">Moderator</option>
+      </select>
+    </div>
+    <div class="fgroup">
+      <label class="flabel">Custom Prompt (optional)</label>
+      <textarea id="aPrompt" placeholder="Give this AI a detailed persona…"></textarea>
+    </div>
+    <div class="fgroup">
+      <label class="flabel">Temperature</label>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;color:var(--text3)">Precise</span>
+        <input type="range" id="aTemp" min="0" max="10" value="7" style="flex:1"
+          oninput="document.getElementById('aTempVal').textContent=(this.value/10).toFixed(1)">
+        <span class="sr-val" id="aTempVal">0.7</span>
+        <span style="font-size:11px;color:var(--text3)">Creative</span>
+      </div>
+    </div>
+    <div class="fgroup">
+      <label class="flabel">AI Provider Override (optional)</label>
+      <select id="aProvider">
+        <option value="">Use global setting</option>
+        <option value="anthropic">Anthropic (Claude)</option>
+        <option value="openai">OpenAI (GPT)</option>
+        <option value="deepseek">DeepSeek</option>
+        <option value="qwen">Qwen (Alibaba)</option>
+      </select>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="TH.closeModal('agentModal')">Cancel</button>
+      <button class="btn primary" onclick="TH.saveAgent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <div class="modal-title">⚙️ API &amp; Model Settings</div>
+    <p style="font-size:11px;color:var(--text3);margin-bottom:16px;line-height:1.6">
+      API keys are stored only in your browser's <code>localStorage</code> and are never sent anywhere except directly to the AI provider's API.
+    </p>
+
+    <div class="api-section">
+      <div class="api-section-title">🤖 Anthropic (Claude)</div>
+      <div class="fgroup">
+        <label class="flabel">Model</label>
+        <select id="modelAnthropic">
+          <option value="claude-sonnet-4-20250514">Claude Sonnet 4.5 (Recommended)</option>
+          <option value="claude-opus-4-20250514">Claude Opus 4.5 (Most Powerful)</option>
+          <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (Fastest)</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label class="flabel">API Key</label>
+        <div class="key-row">
+          <input type="password" id="keyAnthropic" placeholder="sk-ant-…" autocomplete="off">
+          <button class="btn" style="font-size:11px;padding:5px 10px" onclick="TH.toggleKeyVis('keyAnthropic',this)">Show</button>
+        </div>
+        <div class="key-status" id="statusAnthropic"></div>
+      </div>
+    </div>
+
+    <div class="api-section">
+      <div class="api-section-title">💚 OpenAI (GPT)</div>
+      <div class="fgroup">
+        <label class="flabel">Model</label>
+        <select id="modelOpenAI">
+          <option value="gpt-4o">GPT-4o</option>
+          <option value="gpt-4o-mini">GPT-4o Mini (Fast)</option>
+          <option value="gpt-4-turbo">GPT-4 Turbo</option>
+          <option value="o1-preview">o1-preview (Reasoning)</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label class="flabel">API Key</label>
+        <div class="key-row">
+          <input type="password" id="keyOpenAI" placeholder="sk-…" autocomplete="off">
+          <button class="btn" style="font-size:11px;padding:5px 10px" onclick="TH.toggleKeyVis('keyOpenAI',this)">Show</button>
+        </div>
+        <div class="key-status" id="statusOpenAI"></div>
+      </div>
+    </div>
+
+    <div class="api-section">
+      <div class="api-section-title">🔵 DeepSeek</div>
+      <div class="fgroup">
+        <label class="flabel">Model</label>
+        <select id="modelDeepSeek">
+          <option value="deepseek-chat">DeepSeek Chat (V3)</option>
+          <option value="deepseek-reasoner">DeepSeek Reasoner (R1)</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label class="flabel">API Key</label>
+        <div class="key-row">
+          <input type="password" id="keyDeepSeek" placeholder="sk-…" autocomplete="off">
+          <button class="btn" style="font-size:11px;padding:5px 10px" onclick="TH.toggleKeyVis('keyDeepSeek',this)">Show</button>
+        </div>
+        <div class="key-status" id="statusDeepSeek"></div>
+      </div>
+    </div>
+
+    <div class="api-section">
+      <div class="api-section-title">🟠 Qwen (Alibaba Cloud)</div>
+      <div class="fgroup">
+        <label class="flabel">Model</label>
+        <select id="modelQwen">
+          <option value="qwen-turbo">Qwen-Turbo</option>
+          <option value="qwen-plus">Qwen-Plus</option>
+          <option value="qwen-max">Qwen-Max</option>
+        </select>
+      </div>
+      <div class="fgroup">
+        <label class="flabel">API Key</label>
+        <div class="key-row">
+          <input type="password" id="keyQwen" placeholder="sk-…" autocomplete="off">
+          <button class="btn" style="font-size:11px;padding:5px 10px" onclick="TH.toggleKeyVis('keyQwen',this)">Show</button>
+        </div>
+        <div class="key-status" id="statusQwen"></div>
+      </div>
+    </div>
+
+    <div class="fgroup">
+      <label class="flabel">Default Provider (used for all agents unless overridden per-agent)</label>
+      <select id="activeProvider">
+        <option value="anthropic">Anthropic (Claude)</option>
+        <option value="openai">OpenAI (GPT)</option>
+        <option value="deepseek">DeepSeek</option>
+        <option value="qwen">Qwen (Alibaba)</option>
+      </select>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn" onclick="TH.closeModal('settingsModal')">Cancel</button>
+      <button class="btn primary" onclick="TH.saveSettings()">Save Settings</button>
     </div>
   </div>
 </div>
@@ -1112,940 +617,883 @@
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
-<!-- Firebase SDK -->
+<!-- Firebase module -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp }
+import { getFirestore, collection, addDoc, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBxBROFPG7nOje6a37HMsN0QmERSQNotWE",
-  authDomain: "talkhurricane.firebaseapp.com",
-  projectId: "talkhurricane",
-  storageBucket: "talkhurricane.firebasestorage.app",
-  messagingSenderId: "296799696925",
-  appId: "1:296799696925:web:359bc8a8b4bf25f9b56ef4"
-};
-
-const app = initializeApp(firebaseConfig);
+const app = initializeApp({
+  apiKey:"AIzaSyBxBROFPG7nOje6a37HMsN0QmERSQNotWE",
+  authDomain:"talkhurricane.firebaseapp.com",
+  projectId:"talkhurricane",
+  storageBucket:"talkhurricane.firebasestorage.app",
+  messagingSenderId:"296799696925",
+  appId:"1:296799696925:web:359bc8a8b4bf25f9b56ef4"
+});
 const db = getFirestore(app);
-window._db = db;
-window._fsCollection = collection;
-window._fsAddDoc = addDoc;
-window._fsGetDocs = getDocs;
-window._fsQuery = query;
-window._fsOrderBy = orderBy;
-window._fsLimit = limit;
-window._fsServerTimestamp = serverTimestamp;
-window._firebaseReady = true;
-window.dispatchEvent(new Event('firebaseReady'));
+window.__FB = { db, collection, addDoc, serverTimestamp };
+window.dispatchEvent(new Event('fbReady'));
 </script>
 
+<!-- Main app (non-module = fully global) -->
 <script>
-// ════════════════════════════════════════════════════════════
-//  STATE
-// ════════════════════════════════════════════════════════════
-const state = {
-  mode: 'brainstorm',
-  topic: '',
-  agents: [],
-  messages: [],
-  isMeeting: false,
-  currentRound: 0,
-  totalRounds: 3,
-  editingAgentId: null,
-  selectedColor: '#7c6dfa',
-  selectedPersonalities: [],
-  timerInterval: null,
-  timerSeconds: 0,
-  timerRunning: false,
-  proWinRate: 50,
-  relations: {},
-  emotions: {},
-  meetingNotes: [],
-  abortController: null,
-  debatePhases: ['立论阶段','攻辩阶段','自由辩论','总结陈词'],
-  currentPhase: 0,
-  sessionId: null
+(function(){
+"use strict";
+
+// ── utils ──────────────────────────────────────────────────────
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function tnow(){ return new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}); }
+function initials(n){ var p=n.trim().split(/\s+/); return(p.length>=2?p[0][0]+p[1][0]:n.slice(0,2)).toUpperCase(); }
+function sleep(ms){ return new Promise(function(r){setTimeout(r,ms);}); }
+function G(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function showToast(msg, type){
+  var el=G('toast');
+  el.textContent=msg;
+  el.className='toast show '+(type||'');
+  clearTimeout(el._t);
+  el._t=setTimeout(function(){el.className='toast';},3000);
+}
+
+// ── state ──────────────────────────────────────────────────────
+var S = {
+  mode:'brainstorm',
+  agents:[], messages:[],
+  running:false, round:0, totalRounds:3,
+  editId:null, color:'#7b68ee', ptags:[],
+  timerInterval:null, timerSecs:0, timerRunning:false,
+  abort:null, sessionId:uid(),
+  phases:['Opening','Rebuttal','Free Debate','Closing'], phase:0,
+  provider:'anthropic',
+  models:{ anthropic:'claude-sonnet-4-20250514', openai:'gpt-4o', deepseek:'deepseek-chat', qwen:'qwen-turbo' },
+  keys:{ anthropic:'', openai:'', deepseek:'', qwen:'' },
+  emotions:{}
 };
 
-// ════════════════════════════════════════════════════════════
-//  DEFAULT AGENTS
-// ════════════════════════════════════════════════════════════
-function initDefaultAgents() {
-  state.agents = [
-    {
-      id: uid(), name: '理性派 Alex', role: '系统分析者',
-      color: '#7c6dfa', personalities: ['🧠 理性分析','📊 数据导向'],
-      stance: 'neutral', temp: 0.5,
-      prompt: '你是一个极度理性的分析者，喜欢用数据和逻辑支撑观点，反对情绪化表达，每次发言简洁有力，善于找出漏洞。'
-    },
-    {
-      id: uid(), name: '激进派 Nova', role: '创新倡导者',
-      color: '#f59e0b', personalities: ['🔥 激进进取','🎨 创意发散'],
-      stance: 'pro', temp: 0.9,
-      prompt: '你是一个激进的创新者，热情洋溢，喜欢提出颠覆性想法，不惧风险，善于激励他人，偶尔会夸大可能性。'
-    },
-    {
-      id: uid(), name: '稳健派 Sage', role: '风险评估者',
-      color: '#38bdf8', personalities: ['🛡️ 保守稳健','🔍 批判质疑'],
-      stance: 'con', temp: 0.4,
-      prompt: '你是一个经验丰富的保守主义者，总是指出潜在风险，注重可行性，用历史案例反驳激进想法，语气沉稳。'
-    }
-  ];
-  renderAgents();
-}
-
-// ════════════════════════════════════════════════════════════
-//  UTILITIES
-// ════════════════════════════════════════════════════════════
-function uid() { return Math.random().toString(36).slice(2,9); }
-function now() {
-  return new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-}
-function initials(name) {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0]+(parts[1][0]||'')).toUpperCase();
-  return name.slice(0,2).toUpperCase();
-}
-function toast(msg, type='') {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast show ' + type;
-  setTimeout(() => el.className = 'toast', 3000);
-}
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-}
-function handleInputKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendUserMessage(); }
-}
-
-// ════════════════════════════════════════════════════════════
-//  MODE
-// ════════════════════════════════════════════════════════════
-function setMode(mode) {
-  state.mode = mode;
-  document.querySelectorAll('.mode-card').forEach(c => {
-    c.classList.toggle('active', c.dataset.mode === mode);
-  });
-  // Show mode panel
-  const panel = document.getElementById('mode-panel');
-  const debatePanel = document.getElementById('debatePanel');
-  if (mode === 'debate') {
-    panel.style.display = 'block';
-    debatePanel.classList.remove('hidden');
-    initDebateRounds();
-  } else {
-    panel.style.display = 'none';
-    debatePanel.classList.add('hidden');
-  }
-  // Auto-assign roles for special modes
-  if (mode === 'court') autoAssignCourtRoles();
-  if (mode === 'werewolf') autoAssignWerewolfRoles();
-  addSysMsg(`已切换至：${modeNames[mode]} 模式`);
-}
-
-const modeNames = {
-  brainstorm:'💡 灵感风暴', debate:'⚔️ 辩论赛',
-  roundtable:'🗂️ 圆桌会议', court:'⚖️ 法庭', werewolf:'🐺 狼人杀', story:'🌌 剧情模拟'
+var MODE_NAMES = {
+  brainstorm:'💡 Brainstorm', debate:'⚔️ Debate',
+  roundtable:'🗂️ Roundtable', court:'⚖️ Court',
+  werewolf:'🐺 Werewolf', story:'🌌 Story Sim'
 };
 
-function initDebateRounds() {
-  const ind = document.getElementById('roundIndicator');
-  const phases = state.debatePhases;
-  ind.innerHTML = phases.map((p,i) => `<div class="round-dot${i===0?' current':''}" title="${p}"></div>`).join('');
+// ── localStorage ───────────────────────────────────────────────
+function loadSettings(){
+  try {
+    var d=JSON.parse(localStorage.getItem('th_v2')||'{}');
+    if(d.keys){ Object.keys(d.keys).forEach(function(k){ S.keys[k]=d.keys[k]||''; }); }
+    if(d.models){ Object.keys(d.models).forEach(function(k){ S.models[k]=d.models[k]||S.models[k]; }); }
+    if(d.provider) S.provider=d.provider;
+    // populate UI
+    ['anthropic','openai','deepseek','qwen'].forEach(function(p){
+      var ki=G('key'+cap(p)); if(ki&&S.keys[p]) ki.value=S.keys[p];
+      var mi=G('model'+cap(p)); if(mi&&S.models[p]) mi.value=S.models[p];
+    });
+    if(G('activeProvider')&&d.provider) G('activeProvider').value=d.provider;
+  } catch(e){}
 }
-function updateDebatePhase(i) {
-  const dots = document.querySelectorAll('.round-dot');
-  dots.forEach((d,j) => {
-    d.className = 'round-dot' + (j<i?' done':j===i?' current':'');
+
+function saveSettings(){
+  ['anthropic','openai','deepseek','qwen'].forEach(function(p){
+    var ki=G('key'+cap(p)); if(ki) S.keys[p]=ki.value.trim();
+    var mi=G('model'+cap(p)); if(mi) S.models[p]=mi.value;
   });
-  document.getElementById('debatePhase').textContent = state.debatePhases[i] || '结束';
+  var ap=G('activeProvider'); if(ap) S.provider=ap.value;
+  localStorage.setItem('th_v2',JSON.stringify({keys:S.keys,models:S.models,provider:S.provider}));
+  ['anthropic','openai','deepseek','qwen'].forEach(function(p){ showKeyStatus(p); });
+  closeModal('settingsModal');
+  showToast('Settings saved ✓','ok');
 }
 
-function autoAssignCourtRoles() {
-  const roles = ['法官','检察官','辩护律师','证人','陪审员'];
-  state.agents.forEach((a,i) => { a.role = roles[i % roles.length]; });
-  renderAgents();
-  toast('⚖️ 已自动分配法庭角色');
+function showKeyStatus(p){
+  var el=G('status'+cap(p)); if(!el) return;
+  var k=S.keys[p];
+  if(!k){ el.textContent=''; el.className='key-status'; return; }
+  el.className='key-status ok';
+  el.textContent='✓ Key saved ('+k.slice(0,8)+'…)';
 }
-function autoAssignWerewolfRoles() {
-  const roles = ['🐺 狼人','🔮 预言家','🧪 女巫','🏹 猎人','👤 平民','👤 平民'];
-  const shuffled = [...roles].sort(() => Math.random()-0.5);
-  state.agents.forEach((a,i) => {
-    a.role = shuffled[i % shuffled.length];
-    a.hiddenRole = shuffled[i % shuffled.length];
+
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+function toggleKeyVis(inputId, btn){
+  var el=G(inputId);
+  var show=el.type==='password';
+  el.type=show?'text':'password';
+  btn.textContent=show?'Hide':'Show';
+}
+
+// ── MODE ───────────────────────────────────────────────────────
+function setMode(mode){
+  S.mode=mode;
+  document.querySelectorAll('.mode-card').forEach(function(c){
+    c.classList.toggle('active',c.dataset.mode===mode);
   });
-  renderAgents();
-  toast('🐺 身份已随机分配（仅AI可见）');
+  var bar=G('mode-bar');
+  if(mode==='debate'){ bar.style.display='block'; initPhases(); }
+  else bar.style.display='none';
+  if(mode==='court') autoCourtRoles();
+  if(mode==='werewolf') autoWolfRoles();
+  addSys('Mode: '+MODE_NAMES[mode]);
 }
 
-// ════════════════════════════════════════════════════════════
-//  AGENT MANAGEMENT
-// ════════════════════════════════════════════════════════════
-function renderAgents() {
-  const list = document.getElementById('agentList');
-  list.innerHTML = state.agents.map(a => `
-    <div class="agent-item" id="agent-${a.id}" onclick="highlightAgent('${a.id}')">
-      <div class="agent-avatar" style="background:${a.color}22;color:${a.color};">${initials(a.name)}</div>
-      <div class="agent-info">
-        <div class="agent-name">${a.name}</div>
-        <div class="agent-role">${a.role}${a.stance!=='neutral'?' · '+stanceLabel(a.stance):''}</div>
-      </div>
-      <div class="agent-actions">
-        <button class="agent-btn" onclick="editAgent('${a.id}');event.stopPropagation()" title="编辑">✏️</button>
-        <button class="agent-btn" onclick="removeAgent('${a.id}');event.stopPropagation()" title="移除">✕</button>
-      </div>
-    </div>
-  `).join('');
-  updateEmotionGrid();
+function initPhases(){
+  var el=G('phaseDots');
+  el.innerHTML=S.phases.map(function(_,i){
+    return '<div class="pdot'+(i===0?' current':'')+'"></div>';
+  }).join('');
+}
+function updatePhase(i){
+  document.querySelectorAll('.pdot').forEach(function(d,j){
+    d.className='pdot'+(j<i?' done':j===i?' current':'');
+  });
+  var pl=G('phaseLabel'); if(pl) pl.textContent=S.phases[i]||'Done';
 }
 
-function stanceLabel(s) {
-  return {pro:'正方',con:'反方',judge:'评委',moderator:'主持'}[s]||'';
+function autoCourtRoles(){
+  var roles=['Judge','Prosecutor','Defense Lawyer','Witness','Juror'];
+  S.agents.forEach(function(a,i){ a.role=roles[i%roles.length]; });
+  renderAgents(); showToast('⚖️ Court roles assigned');
+}
+function autoWolfRoles(){
+  var pool=['🐺 Werewolf','🔮 Seer','🧪 Witch','🏹 Hunter','👤 Villager','👤 Villager'];
+  var sh=pool.slice().sort(function(){return Math.random()-.5;});
+  S.agents.forEach(function(a,i){ a.hiddenRole=sh[i%sh.length]; a.role='???'; });
+  renderAgents(); showToast('🐺 Hidden roles assigned');
 }
 
-function highlightAgent(id) {
-  document.querySelectorAll('.agent-item').forEach(el => el.classList.remove('active-speaker'));
-  document.getElementById('agent-'+id)?.classList.add('active-speaker');
+// ── AGENTS ─────────────────────────────────────────────────────
+function renderAgents(){
+  var al=G('agentList'); if(!al) return;
+  al.innerHTML=S.agents.map(function(a){
+    var st={pro:'Pro',con:'Con',judge:'Judge',moderator:'Host'}[a.stance]||'';
+    return '<div class="agent-card" id="ac-'+a.id+'">'
+      +'<div class="av" style="background:'+a.color+'22;color:'+a.color+'">'+initials(a.name)+'</div>'
+      +'<div class="agent-info">'
+        +'<div class="aname">'+esc(a.name)+'</div>'
+        +'<div class="arole">'+esc(a.role)+(st?' · '+st:'')+'</div>'
+      +'</div>'
+      +'<div class="agent-btns">'
+        +'<button class="ibtn" onclick="TH.editAgent(\''+a.id+'\')" title="Edit">✏️</button>'
+        +'<button class="ibtn" onclick="TH.removeAgent(\''+a.id+'\')" title="Remove">✕</button>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+  refreshEmoGrid();
 }
 
-function openAddAgent() {
-  state.editingAgentId = null;
-  document.getElementById('agentModalTitle').textContent = '添加 AI 参与者';
-  document.getElementById('agentName').value = '';
-  document.getElementById('agentRole').value = '';
-  document.getElementById('agentPrompt').value = '';
-  document.getElementById('agentStance').value = 'neutral';
-  document.getElementById('agentTemp').value = 7;
-  document.getElementById('agentTempVal').textContent = '0.7';
-  document.querySelectorAll('.personality-tag').forEach(t => t.classList.remove('selected'));
-  state.selectedPersonalities = [];
-  selectColorByValue('#7c6dfa');
+function setSpeaking(id){
+  document.querySelectorAll('.agent-card').forEach(function(c){ c.classList.remove('speaking'); });
+  var el=G('ac-'+id); if(el) el.classList.add('speaking');
+}
+
+function openAddAgent(){
+  S.editId=null;
+  G('agentModalTitle').textContent='Add AI Participant';
+  G('aName').value=''; G('aRole').value=''; G('aPrompt').value='';
+  G('aStance').value='neutral'; G('aProvider').value='';
+  G('aTemp').value=7; G('aTempVal').textContent='0.7';
+  document.querySelectorAll('.ptag').forEach(function(t){t.classList.remove('sel');});
+  S.ptags=[];
+  pickColorVal('#7b68ee');
   openModal('agentModal');
 }
 
-function editAgent(id) {
-  const a = state.agents.find(x => x.id===id);
-  if (!a) return;
-  state.editingAgentId = id;
-  document.getElementById('agentModalTitle').textContent = '编辑 AI 参与者';
-  document.getElementById('agentName').value = a.name;
-  document.getElementById('agentRole').value = a.role;
-  document.getElementById('agentPrompt').value = a.prompt || '';
-  document.getElementById('agentStance').value = a.stance;
-  document.getElementById('agentTemp').value = Math.round(a.temp*10);
-  document.getElementById('agentTempVal').textContent = a.temp.toFixed(1);
-  document.querySelectorAll('.personality-tag').forEach(t => {
-    t.classList.toggle('selected', (a.personalities||[]).includes(t.textContent));
+function editAgent(id){
+  var a=S.agents.find(function(x){return x.id===id;});
+  if(!a) return;
+  S.editId=id;
+  G('agentModalTitle').textContent='Edit AI Participant';
+  G('aName').value=a.name; G('aRole').value=a.role;
+  G('aPrompt').value=a.prompt||'';
+  G('aStance').value=a.stance;
+  G('aProvider').value=a.providerOverride||'';
+  G('aTemp').value=Math.round((a.temp||0.7)*10);
+  G('aTempVal').textContent=(a.temp||0.7).toFixed(1);
+  S.ptags=(a.ptags||[]).slice();
+  document.querySelectorAll('.ptag').forEach(function(t){
+    t.classList.toggle('sel',S.ptags.indexOf(t.textContent)>-1);
   });
-  state.selectedPersonalities = [...(a.personalities||[])];
-  selectColorByValue(a.color);
+  pickColorVal(a.color);
   openModal('agentModal');
 }
 
-function saveAgent() {
-  const name = document.getElementById('agentName').value.trim();
-  const role = document.getElementById('agentRole').value.trim();
-  if (!name) { toast('请输入AI名称','error'); return; }
-  const data = {
-    id: state.editingAgentId || uid(),
-    name, role: role || '参与者',
-    color: state.selectedColor,
-    personalities: [...state.selectedPersonalities],
-    stance: document.getElementById('agentStance').value,
-    temp: parseFloat(document.getElementById('agentTemp').value)/10,
-    prompt: document.getElementById('agentPrompt').value.trim()
+function saveAgent(){
+  var name=G('aName').value.trim();
+  if(!name){ showToast('Name is required','err'); return; }
+  var d={
+    id:S.editId||uid(), name:name,
+    role:G('aRole').value.trim()||'Participant',
+    color:S.color, ptags:S.ptags.slice(),
+    stance:G('aStance').value,
+    temp:parseFloat(G('aTemp').value)/10,
+    prompt:G('aPrompt').value.trim(),
+    providerOverride:G('aProvider').value||'',
+    hiddenRole:null
   };
-  if (state.editingAgentId) {
-    const idx = state.agents.findIndex(a => a.id===state.editingAgentId);
-    state.agents[idx] = data;
+  if(S.editId){
+    var i=S.agents.findIndex(function(a){return a.id===S.editId;});
+    if(i>-1) S.agents[i]=d;
   } else {
-    state.agents.push(data);
-    state.emotions[data.id] = { icon:'😐', name:'中立' };
-    state.relations[data.id] = {};
+    S.agents.push(d);
+    S.emotions[d.id]={icon:'😐',name:'Neutral'};
   }
   renderAgents();
   closeModal('agentModal');
-  toast(`${state.editingAgentId?'已更新':'已添加'} ${name}`,'success');
+  showToast((S.editId?'Updated ':'Added ')+name,'ok');
 }
 
-function removeAgent(id) {
-  state.agents = state.agents.filter(a => a.id!==id);
+function removeAgent(id){
+  S.agents=S.agents.filter(function(a){return a.id!==id;});
+  delete S.emotions[id];
   renderAgents();
 }
 
-function selectColor(el) {
-  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-  el.classList.add('selected');
-  state.selectedColor = el.dataset.color;
+function pickColor(el){
+  document.querySelectorAll('.cswatch').forEach(function(s){s.classList.remove('sel');});
+  el.classList.add('sel');
+  S.color=el.dataset.c;
 }
-function selectColorByValue(color) {
-  state.selectedColor = color;
-  document.querySelectorAll('.color-swatch').forEach(s => {
-    s.classList.toggle('selected', s.dataset.color===color);
+function pickColorVal(c){
+  S.color=c;
+  document.querySelectorAll('.cswatch').forEach(function(s){
+    s.classList.toggle('sel',s.dataset.c===c);
   });
 }
-function togglePersonality(el) {
-  el.classList.toggle('selected');
-  const p = el.textContent;
-  if (el.classList.contains('selected')) state.selectedPersonalities.push(p);
-  else state.selectedPersonalities = state.selectedPersonalities.filter(x=>x!==p);
+function togglePtag(el){
+  el.classList.toggle('sel');
+  var t=el.textContent;
+  if(el.classList.contains('sel')){ S.ptags.push(t); }
+  else { S.ptags=S.ptags.filter(function(x){return x!==t;}); }
 }
 
-// ════════════════════════════════════════════════════════════
-//  MODAL
-// ════════════════════════════════════════════════════════════
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+// ── MODAL ──────────────────────────────────────────────────────
+function openModal(id){ G(id).classList.add('open'); }
+function closeModal(id){ G(id).classList.remove('open'); }
 
-// ════════════════════════════════════════════════════════════
-//  MEETING CONTROL
-// ════════════════════════════════════════════════════════════
-async function startMeeting() {
-  if (state.agents.length < 1) { toast('请先添加至少一个AI参与者','error'); return; }
-  state.isMeeting = true;
-  state.currentRound = 0;
-  state.totalRounds = parseInt(document.getElementById('roundsSlider').value);
-  state.topic = document.getElementById('topicInput').value.trim() || '开放讨论';
-  state.sessionId = uid();
-  state.messages = [];
+// ── TOPIC ──────────────────────────────────────────────────────
+function onTopicChange(){
+  var v=G('topicSelect').value;
+  G('customTopicWrap').classList.toggle('hidden',v!=='custom');
+}
+function getTopic(){
+  var v=G('topicSelect').value;
+  if(v==='custom') return G('customTopic').value.trim()||'Open Discussion';
+  return v;
+}
 
-  document.getElementById('welcomeScreen')?.remove();
-  document.getElementById('btnStart').style.display = 'none';
-  document.getElementById('btnStop').style.display = '';
-  document.getElementById('btnSummary').style.display = '';
-  document.getElementById('statusDot').style.display = '';
-  document.getElementById('modeBadge').style.display = '';
-  document.getElementById('modeBadge').textContent = modeNames[state.mode];
-  document.getElementById('roundLabel').style.display = '';
+// ── API CALL ───────────────────────────────────────────────────
+function callAPI(sysPrompt, messages, temp, maxTok, providerOverride){
+  var provider=providerOverride||S.provider;
+  var key=S.keys[provider];
+  if(!key) return Promise.reject(new Error('No API key for '+provider+'. Open Settings ⚙'));
 
-  addSysMsg(`🚀 会议开始 — 主题：${state.topic}`);
+  var signal=S.abort?S.abort.signal:undefined;
+
+  if(provider==='anthropic'){
+    return fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01'},
+      signal:signal,
+      body:JSON.stringify({
+        model:S.models.anthropic, max_tokens:maxTok, temperature:temp,
+        system:sysPrompt, messages:messages
+      })
+    }).then(function(r){return r.json();}).then(function(d){
+      if(d.error) throw new Error(d.error.message);
+      return (d.content&&d.content[0]&&d.content[0].text)||'';
+    });
+  }
+
+  if(provider==='openai'){
+    var oMsgs=[{role:'system',content:sysPrompt}].concat(messages);
+    return fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      signal:signal,
+      body:JSON.stringify({model:S.models.openai,max_tokens:maxTok,temperature:temp,messages:oMsgs})
+    }).then(function(r){return r.json();}).then(function(d){
+      if(d.error) throw new Error(d.error.message);
+      return (d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'';
+    });
+  }
+
+  if(provider==='deepseek'){
+    var dMsgs=[{role:'system',content:sysPrompt}].concat(messages);
+    return fetch('https://api.deepseek.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      signal:signal,
+      body:JSON.stringify({model:S.models.deepseek,max_tokens:maxTok,temperature:temp,messages:dMsgs})
+    }).then(function(r){return r.json();}).then(function(d){
+      if(d.error) throw new Error(JSON.stringify(d.error));
+      return (d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'';
+    });
+  }
+
+  if(provider==='qwen'){
+    var qMsgs=[{role:'system',content:sysPrompt}].concat(messages);
+    return fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      signal:signal,
+      body:JSON.stringify({model:S.models.qwen,max_tokens:maxTok,temperature:temp,messages:qMsgs})
+    }).then(function(r){return r.json();}).then(function(d){
+      if(d.error) throw new Error(d.error.message);
+      return (d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'';
+    });
+  }
+
+  return Promise.reject(new Error('Unknown provider: '+provider));
+}
+
+// ── MEETING ────────────────────────────────────────────────────
+function startMeeting(){
+  if(S.agents.length<1){ showToast('Add at least one AI participant','err'); return; }
+  var key=S.keys[S.provider];
+  if(!key){ showToast('No API key for '+S.provider+'. Open Settings ⚙','err'); return; }
+
+  S.running=true; S.round=0;
+  S.totalRounds=parseInt(G('roundsSlider').value);
+  S.sessionId=uid(); S.messages=[]; S.phase=0;
+
+  var w=G('welcome'); if(w) w.remove();
+
+  G('btnStart').classList.add('hidden');
+  G('btnStop').classList.remove('hidden');
+  G('btnSummary').classList.remove('hidden');
+  G('statusDot').classList.remove('hidden');
+  G('modeBadge').classList.remove('hidden');
+  G('modeBadge').textContent=MODE_NAMES[S.mode];
+  G('roundLbl').classList.remove('hidden');
+
+  addSys('Meeting started — Topic: '+getTopic());
   startTimer();
 
-  // Run meeting rounds
-  for (let r = 0; r < state.totalRounds && state.isMeeting; r++) {
-    state.currentRound = r + 1;
-    document.getElementById('roundLabel').textContent = `第 ${state.currentRound}/${state.totalRounds} 轮`;
-    if (state.mode === 'debate') {
-      state.currentPhase = Math.min(r, state.debatePhases.length-1);
-      updateDebatePhase(state.currentPhase);
-    }
-    addSysMsg(`━━ 第 ${state.currentRound} 轮开始 ━━`);
-    for (const agent of state.agents) {
-      if (!state.isMeeting) break;
-      await agentSpeak(agent, r);
-      await sleep(400);
-    }
-    // Update relations/emotions/scores after each round
-    updateRelations();
-    updateScores();
-    if (document.getElementById('autoSummary').checked && r === state.totalRounds-1) {
-      await generateSummary();
-    }
+  // run rounds sequentially using promise chain
+  var chain=Promise.resolve();
+  for(var r=0;r<S.totalRounds;r++){
+    (function(ri){
+      chain=chain.then(function(){
+        if(!S.running) return;
+        S.round=ri+1;
+        G('roundLbl').textContent='Round '+S.round+'/'+S.totalRounds;
+        if(S.mode==='debate'){
+          S.phase=Math.min(ri,S.phases.length-1);
+          updatePhase(S.phase);
+        }
+        addSys('── Round '+S.round+' ──');
+        // speak each agent in sequence
+        var ac=Promise.resolve();
+        S.agents.forEach(function(agent){
+          ac=ac.then(function(){
+            if(!S.running) return;
+            return agentSpeak(agent,ri).then(function(){ return sleep(350); });
+          });
+        });
+        return ac.then(function(){
+          updateRelations(); updateScores();
+        });
+      });
+    })(r);
   }
-  if (state.isMeeting) {
-    addSysMsg('✅ 会议结束');
-    state.isMeeting = false;
-    document.getElementById('btnStop').style.display = 'none';
-    document.getElementById('btnStart').style.display = '';
-    document.getElementById('statusDot').style.display = 'none';
-    stopTimer();
-  }
+  chain.then(function(){
+    if(S.running){
+      addSys('Meeting ended');
+      if(G('chkAutoSum').checked) generateSummary();
+    }
+    S.running=false;
+    G('btnStop').classList.add('hidden');
+    G('btnStart').classList.remove('hidden');
+    G('statusDot').classList.add('hidden');
+    stopTimerF();
+  }).catch(function(e){
+    console.error(e);
+    S.running=false;
+    G('btnStop').classList.add('hidden');
+    G('btnStart').classList.remove('hidden');
+    G('statusDot').classList.add('hidden');
+    stopTimerF();
+  });
 }
 
-function stopMeeting() {
-  state.isMeeting = false;
-  state.abortController?.abort();
-  addSysMsg('⏹ 会议已停止');
-  document.getElementById('btnStop').style.display = 'none';
-  document.getElementById('btnStart').style.display = '';
-  document.getElementById('statusDot').style.display = 'none';
-  stopTimer();
-  toast('会议已停止');
+function stopMeeting(){
+  S.running=false;
+  if(S.abort) S.abort.abort();
+  addSys('Meeting stopped by host');
+  G('btnStop').classList.add('hidden');
+  G('btnStart').classList.remove('hidden');
+  G('statusDot').classList.add('hidden');
+  stopTimerF();
+  showToast('Meeting stopped');
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+// ── AGENT SPEAK ────────────────────────────────────────────────
+function agentSpeak(agent, roundIdx){
+  setSpeaking(agent.id);
+  var maxTok=parseInt(G('maxTokSlider').value);
+  var sys=buildSystem(agent);
+  var hist=buildHistory(agent,roundIdx);
+  var bubId=uid();
+  var bubble=appendMsg(agent,'',bubId,roundIdx+1);
 
-// ════════════════════════════════════════════════════════════
-//  AGENT SPEAK
-// ════════════════════════════════════════════════════════════
-async function agentSpeak(agent, roundIdx) {
-  highlightAgent(agent.id);
-  const lang = document.getElementById('langSelect').value;
-  const maxTokens = parseInt(document.getElementById('maxTokensSlider').value);
-  const history = buildHistory(agent, roundIdx);
-  const systemPrompt = buildSystemPrompt(agent, lang);
+  S.abort=new AbortController();
+  var prov=agent.providerOverride||S.provider;
 
-  const msgId = uid();
-  const msgEl = appendMessage(agent, '', msgId, roundIdx+1);
-
-  try {
-    state.abortController = new AbortController();
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: state.abortController.signal,
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: maxTokens,
-        system: systemPrompt,
-        messages: history
-      })
+  return callAPI(sys,hist,agent.temp||0.7,maxTok,prov)
+    .then(function(text){
+      return streamText(bubble,text).then(function(){
+        S.messages.push({id:bubId,agentId:agent.id,agentName:agent.name,
+          text:text,round:roundIdx+1,time:tnow(),stance:agent.stance});
+        addMsgTags(bubId,text);
+        updateEmotion(agent.id,text);
+        if(S.mode==='debate') updateWR();
+      });
+    })
+    .catch(function(err){
+      if(err.name!=='AbortError'){
+        bubble.textContent='⚠ Error: '+err.message;
+      }
+      bubble.classList.remove('streaming');
     });
-
-    const data = await resp.json();
-    let text = '';
-    if (data.content && data.content[0]) {
-      text = data.content[0].text || '';
-    }
-
-    // Simulate streaming effect
-    await streamText(msgEl, text);
-    msgEl.classList.remove('streaming');
-
-    const msgRecord = { id: msgId, agentId: agent.id, agentName: agent.name,
-      text, round: roundIdx+1, time: now(), stance: agent.stance };
-    state.messages.push(msgRecord);
-
-    // Parse tags
-    addMessageTags(msgEl, text, agent);
-    updateAgentEmotion(agent.id, text);
-    if (state.mode === 'debate') updateWinRate();
-
-  } catch (err) {
-    if (err.name !== 'AbortError') {
-      msgEl.textContent = '⚠️ 生成失败，请检查网络或API';
-      msgEl.classList.remove('streaming');
-    }
-  }
 }
 
-function buildSystemPrompt(agent, lang) {
-  const langInstr = lang==='en' ? 'Respond only in English.' :
-    lang==='bilingual' ? '用中文回复，关键词可以附带英文。' : '用中文回复。';
-  const mode = state.mode;
-  const modeCtx = {
-    brainstorm: '这是灵感风暴会议，禁止否定他人，积极联想，扩展创意树。',
-    debate: `这是辩论赛，当前阶段：${state.debatePhases[state.currentPhase]}。你的立场是${agent.stance==='pro'?'正方（支持）':'agent.stance==="con"?反方（反对）':'中立裁判'}。要用逻辑和例证强化你的立场。`,
-    roundtable: '这是圆桌会议，注重协作与分工，提出可落地的方案。',
-    court: '这是法庭模拟，严格遵守法庭程序，用证据说话。',
-    werewolf: `这是狼人杀，你的秘密身份是：${agent.hiddenRole||agent.role}。根据身份行动，可以撒谎、伪装、推理。`,
-    story: '这是剧情模拟，深入角色，推进故事情节，保持世界观一致性。'
-  }[mode] || '';
-
-  const recentMsgs = state.messages.slice(-6).map(m =>
-    `${m.agentName}：${m.text.slice(0,100)}`).join('\n');
-
-  return `你是"${agent.name}"，${agent.role}。
-${agent.prompt || ''}
-
-人格特质：${(agent.personalities||[]).join('、')||'通用'}
-${modeCtx}
-
-当前讨论主题：${state.topic}
-${recentMsgs ? `\n近期对话摘要：\n${recentMsgs}` : ''}
-
-要求：
-- 每次发言200字以内，观点鲜明，有个人风格
-- 可以引用或反驳其他AI的观点
-- ${langInstr}
-- 不要重复相同观点，每轮推进讨论深度`;
+function buildSystem(agent){
+  var lang=G('langSelect').value;
+  var langInstr=lang==='en'?'Always respond in English only.':
+    lang==='zh'?'始终用中文回复。':
+    'Respond mainly in English; you may include Chinese key terms.';
+  var topic=getTopic();
+  var modeCtx={
+    brainstorm:'This is a Brainstorm session. Never dismiss ideas. Build on others and expand creative directions.',
+    debate:'This is a formal Debate. Current phase: '+S.phases[S.phase]+'. Defend your stance rigorously. Rebut opponents directly.',
+    roundtable:'This is a Roundtable. Focus on collaboration and actionable proposals.',
+    court:'This is a Courtroom simulation. Follow procedure strictly. Argue from evidence.',
+    werewolf:'This is a Werewolf game. Your secret role: '+(agent.hiddenRole||agent.role)+'. Act according to your role. You may lie and misdirect.',
+    story:'This is a Story Simulation. Stay in character. Advance the plot.'
+  }[S.mode]||'';
+  var recentCtx=S.messages.slice(-6).map(function(m){
+    return m.agentName+': '+m.text.slice(0,120);
+  }).join('\n');
+  return 'You are "'+agent.name+'", a '+agent.role+'.\n'
+    +(agent.prompt||'')+'\n\n'
+    +'Traits: '+(agent.ptags||[]).join(', ')+'\n'
+    +modeCtx+'\n\n'
+    +'Topic: '+topic+'\n'
+    +(recentCtx?'Recent discussion:\n'+recentCtx:'')+'\n\n'
+    +'Rules:\n'
+    +'- Keep responses under 180 words. Be opinionated and distinct.\n'
+    +'- Reference or rebut specific points made by others when possible.\n'
+    +'- Each round must advance the discussion — no repetition.\n'
+    +langInstr;
 }
 
-function buildHistory(agent, roundIdx) {
-  const recent = state.messages.slice(-10);
-  const msgs = recent.map(m => ({
-    role: m.agentId === agent.id ? 'assistant' : 'user',
-    content: `[${m.agentName}]：${m.text}`
-  }));
-  msgs.push({ role: 'user', content: `请你作为${agent.name}，在第${roundIdx+1}轮就主题"${state.topic}"发表你的观点。` });
-  return msgs;
+function buildHistory(agent, roundIdx){
+  var recent=S.messages.slice(-10).map(function(m){
+    return {role:m.agentId===agent.id?'assistant':'user',content:'['+m.agentName+']: '+m.text};
+  });
+  recent.push({role:'user',content:'Round '+(roundIdx+1)+': Share your perspective on "'+getTopic()+'" as '+agent.name+'.'});
+  return recent;
 }
 
-async function streamText(el, text) {
-  el.textContent = '';
+// ── STREAM ─────────────────────────────────────────────────────
+function streamText(el, text){
+  el.textContent='';
   el.classList.add('streaming');
-  const speed = Math.max(8, Math.floor(1000 / text.length));
-  for (let i = 0; i < text.length; i++) {
-    el.textContent = text.slice(0, i+1);
-    scrollChat();
-    await sleep(speed > 30 ? 30 : speed);
-  }
-  el.classList.remove('streaming');
-}
-
-// ════════════════════════════════════════════════════════════
-//  MESSAGES
-// ════════════════════════════════════════════════════════════
-function appendMessage(agent, text, id, round) {
-  const chat = document.getElementById('chat-area');
-  const group = document.createElement('div');
-  group.className = 'msg-group';
-  group.id = 'group-'+id;
-
-  group.innerHTML = `
-    <div class="msg-header">
-      <div class="msg-avatar" style="background:${agent.color}22;color:${agent.color};">${initials(agent.name)}</div>
-      <span class="msg-name" style="color:${agent.color}">${agent.name}</span>
-      <span class="msg-time">${now()}</span>
-      <span class="msg-round-tag">R${round}</span>
-      ${agent.stance!=='neutral'?`<span class="tag-pill" style="background:${agent.stance==='pro'?'rgba(124,109,250,0.1)':'rgba(56,189,248,0.1)'};color:${agent.stance==='pro'?'var(--accent2)':'var(--accent3)'};border-color:${agent.stance==='pro'?'rgba(124,109,250,0.3)':'rgba(56,189,248,0.3)'}">${stanceLabel(agent.stance)}</span>`:''}
-    </div>
-    <div class="msg-bubble streaming" id="bubble-${id}">${text}</div>
-    <div class="msg-meta" id="meta-${id}"></div>
-  `;
-  chat.appendChild(group);
-  scrollChat();
-  return document.getElementById('bubble-'+id);
-}
-
-function addSysMsg(text) {
-  const chat = document.getElementById('chat-area');
-  const el = document.createElement('div');
-  el.className = 'sys-msg';
-  el.textContent = text;
-  chat.appendChild(el);
-  scrollChat();
-}
-
-function addMessageTags(bubble, text, agent) {
-  const metaEl = document.getElementById('meta-'+bubble.id?.replace('bubble-',''));
-  if (!metaEl) return;
-  const tags = [];
-  if (text.includes('反对') || text.includes('不同意') || text.includes('错误')) tags.push({cls:'attack',label:'⚔️ 反驳'});
-  if (text.includes('支持') || text.includes('同意') || text.includes('赞同')) tags.push({cls:'support',label:'✅ 支持'});
-  if (text.includes('？') || text.includes('为什么') || text.includes('如何')) tags.push({cls:'question',label:'❓ 质疑'});
-  if (text.includes('提议') || text.includes('建议') || text.includes('可以考虑')) tags.push({cls:'idea',label:'💡 提案'});
-  metaEl.innerHTML = tags.map(t=>`<span class="msg-tag ${t.cls}">${t.label}</span>`).join('');
-}
-
-function scrollChat() {
-  const c = document.getElementById('chat-area');
-  c.scrollTop = c.scrollHeight;
-}
-
-// ════════════════════════════════════════════════════════════
-//  USER MESSAGE
-// ════════════════════════════════════════════════════════════
-async function sendUserMessage() {
-  const input = document.getElementById('user-input');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  input.style.height = 'auto';
-
-  const chat = document.getElementById('chat-area');
-  // Remove welcome screen if present
-  document.getElementById('welcomeScreen')?.remove();
-
-  const group = document.createElement('div');
-  group.className = 'msg-group';
-  group.style.alignItems = 'flex-end';
-  group.innerHTML = `
-    <div class="msg-header" style="justify-content:flex-end;">
-      <span class="msg-time">${now()}</span>
-      <span class="msg-name" style="color:var(--accent2)">主持人</span>
-      <div class="msg-avatar" style="background:rgba(124,109,250,0.2);color:var(--accent2);">🎙</div>
-    </div>
-    <div class="msg-bubble user-msg">${text}</div>
-  `;
-  chat.appendChild(group);
-  scrollChat();
-
-  state.messages.push({ id:uid(), agentId:'host', agentName:'主持人', text, round:state.currentRound, time:now() });
-
-  // If meeting is running, trigger one response from a random agent
-  if (state.isMeeting && state.agents.length > 0) {
-    const agent = state.agents[Math.floor(Math.random()*state.agents.length)];
-    await agentSpeak(agent, state.currentRound);
-  } else if (!state.isMeeting && state.agents.length > 0) {
-    // Allow chatting outside meeting
-    const agent = state.agents[0];
-    await agentSpeak(agent, 0);
-  }
-}
-
-// ════════════════════════════════════════════════════════════
-//  SCORES & EMOTIONS
-// ════════════════════════════════════════════════════════════
-function updateScores() {
-  const base = { logic: 5, emotion: 5, evidence: 5, creative: 5 };
-  state.messages.slice(-5).forEach(m => {
-    if (m.text.includes('数据') || m.text.includes('研究') || m.text.includes('统计')) base.logic += 0.5;
-    if (m.text.includes('！') || m.text.includes('激动') || m.text.includes('相信')) base.emotion += 0.5;
-    if (m.text.includes('例如') || m.text.includes('案例') || m.text.includes('证明')) base.evidence += 0.5;
-    if (m.text.includes('全新') || m.text.includes('颠覆') || m.text.includes('创新')) base.creative += 0.5;
-  });
-  const clamp = v => Math.min(10, Math.max(0, v));
-  ['logic','emotion','evidence','creative'].forEach(k => {
-    const v = clamp(base[k]);
-    const bar = document.getElementById('score'+k.charAt(0).toUpperCase()+k.slice(1));
-    const num = document.getElementById('score'+k.charAt(0).toUpperCase()+k.slice(1)+'Num');
-    if (bar) bar.style.width = (v*10)+'%';
-    if (num) num.textContent = v.toFixed(1);
+  var delay=Math.min(30,Math.max(5,Math.floor(900/Math.max(text.length,1))));
+  var i=0;
+  return new Promise(function(resolve){
+    function tick(){
+      if(i>=text.length){ el.classList.remove('streaming'); resolve(); return; }
+      el.textContent=text.slice(0,i+1);
+      scrollChat();
+      i++;
+      setTimeout(tick,delay);
+    }
+    tick();
   });
 }
 
-function updateAgentEmotion(agentId, text) {
-  const emotions = [
-    {icon:'😤', name:'激动', triggers:['！！','强烈','绝对']},
-    {icon:'🧐', name:'质疑', triggers:['真的吗','但是','然而']},
-    {icon:'😊', name:'认同', triggers:['同意','支持','对的']},
-    {icon:'😠', name:'反对', triggers:['错了','不对','反对']},
-    {icon:'🤔', name:'思考', triggers:['也许','可能','考虑']},
-    {icon:'😄', name:'兴奋', triggers:['太好了','完美','绝妙']},
-  ];
-  const matched = emotions.find(e => e.triggers.some(t => text.includes(t)));
-  state.emotions[agentId] = matched || {icon:'😐', name:'平静'};
-  updateEmotionGrid();
+// ── MESSAGES ───────────────────────────────────────────────────
+function appendMsg(agent, text, id, round){
+  var chat=G('chat');
+  var grp=document.createElement('div');
+  grp.className='msg-group';
+  grp.id='grp-'+id;
+  var stanceBadge='';
+  if(agent.stance==='pro') stanceBadge='<span class="rtag" style="color:var(--accent2)">PRO</span>';
+  else if(agent.stance==='con') stanceBadge='<span class="rtag" style="color:var(--accent3)">CON</span>';
+  grp.innerHTML=
+    '<div class="msg-hdr">'
+      +'<div class="msg-av" style="background:'+agent.color+'22;color:'+agent.color+'">'+initials(agent.name)+'</div>'
+      +'<span class="msg-name" style="color:'+agent.color+'">'+esc(agent.name)+'</span>'
+      +'<span class="msg-time">'+tnow()+'</span>'
+      +'<span class="rtag">R'+round+'</span>'
+      +stanceBadge
+    +'</div>'
+    +'<div class="bubble streaming" id="bub-'+id+'"></div>'
+    +'<div class="msg-tags" id="tags-'+id+'"></div>';
+  chat.appendChild(grp);
+  scrollChat();
+  return G('bub-'+id);
 }
 
-function updateEmotionGrid() {
-  const grid = document.getElementById('emotionGrid');
-  grid.innerHTML = state.agents.map(a => {
-    const em = state.emotions[a.id] || {icon:'😐', name:'平静'};
-    return `<div class="emotion-item">
-      <span class="emotion-icon">${em.icon}</span>
-      <div style="font-size:10px;color:var(--text2);font-weight:600;margin-top:2px;">${a.name.split(' ')[0]}</div>
-      <div class="emotion-name">${em.name}</div>
-    </div>`;
+function addSys(text){
+  var el=document.createElement('div');
+  el.className='sys-msg'; el.textContent=text;
+  G('chat').appendChild(el);
+  scrollChat();
+}
+
+function addMsgTags(bubId, text){
+  var el=G('tags-'+bubId); if(!el) return;
+  var tags=[];
+  if(/disagree|wrong|reject|oppose|refute/i.test(text)) tags.push({c:'attack',l:'⚔ Rebuttal'});
+  if(/agree|support|exactly|right|correct/i.test(text)) tags.push({c:'support',l:'✅ Support'});
+  if(/\?|why|how|what if/i.test(text))                  tags.push({c:'question',l:'❓ Question'});
+  if(/propose|suggest|idea|could we|what if we/i.test(text)) tags.push({c:'idea',l:'💡 Proposal'});
+  el.innerHTML=tags.map(function(t){return '<span class="mtag '+t.c+'">'+t.l+'</span>';}).join('');
+}
+
+function scrollChat(){
+  var c=G('chat'); if(c) c.scrollTop=c.scrollHeight;
+}
+
+// ── USER MSG ───────────────────────────────────────────────────
+function sendUser(){
+  var input=G('uinput');
+  var text=input.value.trim(); if(!text) return;
+  input.value=''; input.style.height='auto';
+  var w=G('welcome'); if(w) w.remove();
+
+  var chat=G('chat');
+  var grp=document.createElement('div');
+  grp.className='msg-group user-group';
+  grp.innerHTML=
+    '<div class="msg-hdr right">'
+      +'<span class="msg-time">'+tnow()+'</span>'
+      +'<span class="msg-name" style="color:var(--accent2)">Host</span>'
+      +'<div class="msg-av" style="background:rgba(123,104,238,.2);color:var(--accent2)">🎙</div>'
+    +'</div>'
+    +'<div class="bubble user">'+esc(text)+'</div>';
+  chat.appendChild(grp);
+  scrollChat();
+  S.messages.push({id:uid(),agentId:'host',agentName:'Host',text:text,round:S.round,time:tnow()});
+
+  if(S.agents.length>0){
+    var key=S.keys[S.provider];
+    if(!key){ addSys('No API key set. Open Settings ⚙ to add one.'); return; }
+    var agent=S.running
+      ?S.agents[Math.floor(Math.random()*S.agents.length)]
+      :S.agents[0];
+    agentSpeak(agent,S.round).catch(function(e){ console.error(e); });
+  }
+}
+
+function handleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendUser(); }
+}
+function resize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,110)+'px';
+}
+
+// ── SCORES ─────────────────────────────────────────────────────
+function updateScores(){
+  var b={logic:50,emotion:50,evidence:50,creative:50};
+  S.messages.slice(-6).forEach(function(m){
+    if(/data|study|research|statistic/i.test(m.text)) b.logic=Math.min(100,b.logic+8);
+    if(/!/.test(m.text))                              b.emotion=Math.min(100,b.emotion+5);
+    if(/example|case|prove|evidence/i.test(m.text))  b.evidence=Math.min(100,b.evidence+8);
+    if(/innovative|novel|creative|new idea/i.test(m.text)) b.creative=Math.min(100,b.creative+8);
+  });
+  function setScore(key,fillId,numId){
+    var f=G(fillId),n=G(numId);
+    if(f) f.style.width=b[key]+'%';
+    if(n) n.textContent=(b[key]/10).toFixed(1);
+  }
+  setScore('logic','sfLogic','snLogic');
+  setScore('emotion','sfEmotion','snEmotion');
+  setScore('evidence','sfEvidence','snEvidence');
+  setScore('creative','sfCreative','snCreative');
+}
+
+// ── EMOTIONS ───────────────────────────────────────────────────
+var EMO=[
+  {icon:'😤',name:'Passionate',rx:/strongly|definitely|absolutely/i},
+  {icon:'🧐',name:'Skeptical', rx:/really\?|are you sure|doubt/i},
+  {icon:'😊',name:'Agreeable', rx:/agree|support|exactly/i},
+  {icon:'😠',name:'Opposed',   rx:/wrong|disagree|reject/i},
+  {icon:'🤔',name:'Thinking',  rx:/maybe|perhaps|consider/i},
+  {icon:'😄',name:'Excited',   rx:/great|perfect|brilliant/i}
+];
+function updateEmotion(id,text){
+  var m=null;
+  for(var i=0;i<EMO.length;i++){ if(EMO[i].rx.test(text)){m=EMO[i];break;} }
+  S.emotions[id]=m||{icon:'😐',name:'Neutral'};
+  refreshEmoGrid();
+}
+function refreshEmoGrid(){
+  var el=G('emoGrid'); if(!el) return;
+  if(!S.agents.length){ el.innerHTML='<span style="font-size:11px;color:var(--text3)">Add agents first…</span>'; return; }
+  el.innerHTML=S.agents.map(function(a){
+    var em=S.emotions[a.id]||{icon:'😐',name:'Neutral'};
+    return '<div class="emo-item">'
+      +'<span class="emo-icon">'+em.icon+'</span>'
+      +'<div class="emo-who">'+esc(a.name.split(' ')[0])+'</div>'
+      +'<div class="emo-name">'+em.name+'</div>'
+    +'</div>';
   }).join('');
 }
 
-// ════════════════════════════════════════════════════════════
-//  DEBATE WIN RATE
-// ════════════════════════════════════════════════════════════
-function updateWinRate() {
-  const pro = state.messages.filter(m => m.stance==='pro').length;
-  const con = state.messages.filter(m => m.stance==='con').length;
-  const total = pro + con;
-  if (total === 0) return;
-  state.proWinRate = Math.round((pro/total)*100);
-  const fill = document.getElementById('winrateFill');
-  if (fill) fill.style.width = state.proWinRate + '%';
+// ── WIN RATE ───────────────────────────────────────────────────
+function updateWR(){
+  var pro=0,con=0;
+  S.messages.forEach(function(m){ if(m.stance==='pro')pro++; else if(m.stance==='con')con++; });
+  var tot=pro+con; if(!tot) return;
+  var pct=Math.round(pro/tot*100);
+  var el=G('wrFill'); if(el) el.style.width=pct+'%';
 }
 
-// ════════════════════════════════════════════════════════════
-//  RELATIONS
-// ════════════════════════════════════════════════════════════
-function updateRelations() {
-  const list = document.getElementById('relationList');
-  const relItems = [];
-  state.agents.forEach((a,i) => {
-    state.agents.forEach((b,j) => {
-      if (i>=j) return;
-      const aMsg = state.messages.filter(m=>m.agentId===a.id).map(m=>m.text).join(' ');
-      const hasConflict = aMsg.includes('反对') || aMsg.includes('错误');
-      const hasSupport = aMsg.includes('同意') || aMsg.includes('支持');
-      const rel = hasConflict ? {dot:'#f87171',label:'对立'} :
-        hasSupport ? {dot:'#34d399',label:'协作'} : {dot:'#888',label:'中立'};
-      relItems.push(`<div class="relation-item">
-        <div class="rel-dot" style="background:${rel.dot}"></div>
-        <span style="color:${a.color}">${a.name.split(' ')[0]}</span>
-        <span style="color:var(--text3)">↔</span>
-        <span style="color:${b.color}">${b.name.split(' ')[0]}</span>
-        <span style="margin-left:auto;font-size:10px;color:${rel.dot}">${rel.label}</span>
-      </div>`);
-    });
-  });
-  list.innerHTML = relItems.slice(0,5).join('') || '<div style="font-size:11px;color:var(--text3)">暂无关系数据</div>';
-}
-
-// ════════════════════════════════════════════════════════════
-//  SUMMARY
-// ════════════════════════════════════════════════════════════
-async function generateSummary() {
-  if (state.messages.length === 0) { toast('暂无对话内容','error'); return; }
-  const summaryBox = document.getElementById('summaryBox');
-  summaryBox.textContent = '正在生成摘要...';
-
-  const history = state.messages.slice(-15).map(m=>`${m.agentName}：${m.text}`).join('\n');
-  try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 500,
-        system: '你是会议记录AI，请生成简洁的中文摘要，包含：核心观点、主要分歧、初步结论。200字以内。',
-        messages: [{ role:'user', content:`会议主题：${state.topic}\n\n对话内容：\n${history}` }]
-      })
-    });
-    const data = await resp.json();
-    const summary = data.content?.[0]?.text || '摘要生成失败';
-    summaryBox.textContent = summary;
-
-    // Generate action items
-    await generateNotes(history);
-  } catch(e) {
-    summaryBox.textContent = '摘要生成失败';
-  }
-}
-
-async function generateNotes(history) {
-  try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 200,
-        system: '从会议对话中提取3-5个待办事项或行动建议，每条一行，用"·"开头，简洁明了。',
-        messages: [{ role:'user', content: history }]
-      })
-    });
-    const data = await resp.json();
-    const notes = data.content?.[0]?.text || '— 暂无';
-    document.getElementById('notesArea').textContent = notes;
-  } catch(e) {}
-}
-
-// ════════════════════════════════════════════════════════════
-//  TIMER
-// ════════════════════════════════════════════════════════════
-function startTimer() {
-  state.timerSeconds = 0;
-  state.timerRunning = true;
-  document.getElementById('timerBtn').textContent = '暂停';
-  state.timerInterval = setInterval(() => {
-    if (!state.timerRunning) return;
-    state.timerSeconds++;
-    const m = Math.floor(state.timerSeconds/60).toString().padStart(2,'0');
-    const s = (state.timerSeconds%60).toString().padStart(2,'0');
-    const el = document.getElementById('timerDisplay');
-    el.textContent = m+':'+s;
-    if (state.timerSeconds > 3600) el.classList.add('urgent');
-  }, 1000);
-}
-function stopTimer() {
-  state.timerRunning = false;
-  clearInterval(state.timerInterval);
-  document.getElementById('timerBtn').textContent = '启动';
-}
-function resetTimer() {
-  stopTimer();
-  state.timerSeconds = 0;
-  document.getElementById('timerDisplay').textContent = '00:00';
-  document.getElementById('timerDisplay').classList.remove('urgent');
-}
-function toggleTimer() {
-  if (state.timerRunning) {
-    state.timerRunning = false;
-    document.getElementById('timerBtn').textContent = '继续';
-  } else {
-    if (!state.timerInterval) startTimer();
-    else {
-      state.timerRunning = true;
-      document.getElementById('timerBtn').textContent = '暂停';
+// ── RELATIONS ──────────────────────────────────────────────────
+function updateRelations(){
+  var el=G('relList'); if(!el) return;
+  var items=[];
+  for(var i=0;i<S.agents.length;i++){
+    for(var j=i+1;j<S.agents.length;j++){
+      var a=S.agents[i],b=S.agents[j];
+      var aTxt=S.messages.filter(function(m){return m.agentId===a.id;}).map(function(m){return m.text;}).join(' ');
+      var conf=/disagree|wrong|reject|oppose/i.test(aTxt);
+      var aln=/agree|support|exactly/i.test(aTxt);
+      var rel=conf?{dot:'var(--danger)',lbl:'Conflict'}:aln?{dot:'var(--success)',lbl:'Alliance'}:{dot:'#888',lbl:'Neutral'};
+      items.push('<div class="rel-item">'
+        +'<div class="rel-dot" style="background:'+rel.dot+'"></div>'
+        +'<span style="color:'+a.color+'">'+esc(a.name.split(' ')[0])+'</span>'
+        +'<span style="color:var(--text3)">↔</span>'
+        +'<span style="color:'+b.color+'">'+esc(b.name.split(' ')[0])+'</span>'
+        +'<span style="margin-left:auto;font-size:9px;color:'+rel.dot+'">'+rel.lbl+'</span>'
+      +'</div>');
     }
   }
+  el.innerHTML=items.slice(0,5).join('')||'<span style="font-size:11px;color:var(--text3)">No data yet</span>';
 }
 
-// ════════════════════════════════════════════════════════════
-//  EXPORT
-// ════════════════════════════════════════════════════════════
-function toggleExport() {
-  document.getElementById('exportMenu').classList.toggle('open');
+// ── SUMMARY ────────────────────────────────────────────────────
+function generateSummary(){
+  if(!S.messages.length){ showToast('No messages yet','err'); return; }
+  var key=S.keys[S.provider];
+  if(!key){ showToast('No API key set','err'); return; }
+  G('sumBox').textContent='Generating summary…';
+  var hist=S.messages.slice(-15).map(function(m){return m.agentName+': '+m.text;}).join('\n');
+  var sumSys='You are a meeting recorder. Write a concise 150-word summary covering: key arguments, main disagreements, and preliminary conclusions.';
+  callAPI(sumSys,[{role:'user',content:'Topic: '+getTopic()+'\n\n'+hist}],0.4,400)
+    .then(function(sum){
+      G('sumBox').textContent=sum;
+      var noteSys='Extract 3-5 action items or next steps from this discussion. Use bullet points starting with "•". Be concise.';
+      return callAPI(noteSys,[{role:'user',content:hist}],0.3,200);
+    })
+    .then(function(notes){ G('notesBox').textContent=notes; })
+    .catch(function(e){ G('sumBox').textContent='Summary failed: '+e.message; });
 }
-document.addEventListener('click', e => {
-  if (!e.target.closest('#btnExport') && !e.target.closest('#exportMenu')) {
-    document.getElementById('exportMenu').classList.remove('open');
-  }
+
+// ── TIMER ──────────────────────────────────────────────────────
+function startTimer(){
+  S.timerSecs=0; S.timerRunning=true;
+  G('timerBtn').textContent='Pause';
+  S.timerInterval=setInterval(function(){
+    if(!S.timerRunning) return;
+    S.timerSecs++;
+    var m=String(Math.floor(S.timerSecs/60)).padStart(2,'0');
+    var sec=String(S.timerSecs%60).padStart(2,'0');
+    var el=G('timerBox');
+    el.textContent=m+':'+sec;
+    el.classList.toggle('urgent',S.timerSecs>3600);
+  },1000);
+}
+function stopTimerF(){
+  S.timerRunning=false;
+  clearInterval(S.timerInterval);
+  S.timerInterval=null;
+  G('timerBtn').textContent='Start';
+}
+function resetTimer(){
+  stopTimerF();
+  S.timerSecs=0;
+  G('timerBox').textContent='00:00';
+  G('timerBox').classList.remove('urgent');
+}
+function toggleTimer(){
+  if(S.timerRunning){ S.timerRunning=false; G('timerBtn').textContent='Resume'; }
+  else if(S.timerInterval){ S.timerRunning=true; G('timerBtn').textContent='Pause'; }
+  else startTimer();
+}
+
+// ── EXPORT ─────────────────────────────────────────────────────
+function toggleExport(){
+  G('exportMenu').classList.toggle('open');
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.drop-wrap')) G('exportMenu').classList.remove('open');
 });
 
-function exportMarkdown() {
-  const lines = [
-    `# TalkHurricane 会议记录`,
-    `**主题：** ${state.topic}`,
-    `**模式：** ${modeNames[state.mode]}`,
-    `**时间：** ${new Date().toLocaleString('zh-CN')}`,
-    `**参与者：** ${state.agents.map(a=>a.name).join('、')}`,
-    `---`,
-    ...state.messages.map(m =>
-      `### ${m.agentName} (R${m.round} · ${m.time})\n${m.text}`
-    ),
-    `---`,
-    `## 会议摘要`,
-    document.getElementById('summaryBox').textContent,
-    `## 待办事项`,
-    document.getElementById('notesArea').textContent
-  ];
-  download('talkhurricane-meeting.md', lines.join('\n\n'), 'text/markdown');
-  toast('✅ Markdown 已导出','success');
+function dl(name,content,type){
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type:type}));
+  a.download=name; a.click();
+}
+function exportMD(){
+  var lines=['# TalkHurricane Meeting Record',
+    '**Topic:** '+getTopic(),
+    '**Mode:** '+MODE_NAMES[S.mode],
+    '**Date:** '+new Date().toLocaleString(),
+    '**Participants:** '+S.agents.map(function(a){return a.name;}).join(', '),
+    '---'];
+  S.messages.forEach(function(m){ lines.push('### '+m.agentName+' (R'+m.round+' · '+m.time+')\n'+m.text); });
+  lines.push('---','## Summary\n'+G('sumBox').textContent,'## Action Items\n'+G('notesBox').textContent);
+  dl('talkhurricane.md',lines.join('\n\n'),'text/markdown');
+  showToast('Markdown exported','ok');
+}
+function exportJSON(){
+  var data={sessionId:S.sessionId,topic:getTopic(),mode:S.mode,
+    agents:S.agents.map(function(a){return {name:a.name,role:a.role,stance:a.stance};}),
+    messages:S.messages,summary:G('sumBox').textContent,
+    notes:G('notesBox').textContent,exportedAt:new Date().toISOString()};
+  dl('talkhurricane.json',JSON.stringify(data,null,2),'application/json');
+  showToast('JSON exported','ok');
+}
+function exportTXT(){
+  var lines=['TalkHurricane Meeting Record','Topic: '+getTopic(),'='.repeat(40)];
+  S.messages.forEach(function(m){ lines.push('[R'+m.round+'] '+m.agentName+' ('+m.time+'):\n'+m.text); });
+  lines.push('='.repeat(40),'Summary:\n'+G('sumBox').textContent,'Action Items:\n'+G('notesBox').textContent);
+  dl('talkhurricane.txt',lines.join('\n\n'),'text/plain');
+  showToast('Text exported','ok');
+}
+function saveCloud(){
+  if(!window.__FB){ showToast('Firebase not ready','err'); return; }
+  var _a=window.__FB;
+  _a.addDoc(_a.collection(_a.db,'meetings'),{
+    sessionId:S.sessionId,topic:getTopic(),mode:S.mode,
+    agents:S.agents.map(function(a){return{name:a.name,role:a.role};}),
+    messages:S.messages.slice(-50),
+    summary:G('sumBox').textContent,
+    createdAt:_a.serverTimestamp()
+  }).then(function(ref){ showToast('Saved to cloud ('+ref.id.slice(0,8)+'…)','ok'); })
+    .catch(function(e){ showToast('Cloud save failed: '+e.message,'err'); });
 }
 
-function exportJSON() {
-  const data = {
-    sessionId: state.sessionId,
-    topic: state.topic,
-    mode: state.mode,
-    agents: state.agents.map(a=>({name:a.name,role:a.role,stance:a.stance})),
-    messages: state.messages,
-    summary: document.getElementById('summaryBox').textContent,
-    notes: document.getElementById('notesArea').textContent,
-    exportedAt: new Date().toISOString()
-  };
-  download('talkhurricane-meeting.json', JSON.stringify(data, null, 2), 'application/json');
-  toast('✅ JSON 已导出','success');
-}
-
-function exportTXT() {
-  const lines = [
-    `TalkHurricane 会议记录`,
-    `主题：${state.topic}`,
-    `模式：${modeNames[state.mode]}`,
-    `时间：${new Date().toLocaleString('zh-CN')}`,
-    `${'='.repeat(40)}`,
-    ...state.messages.map(m => `[R${m.round}] ${m.agentName} (${m.time}):\n${m.text}`),
-    `${'='.repeat(40)}`,
-    `摘要：\n${document.getElementById('summaryBox').textContent}`,
-    `待办：\n${document.getElementById('notesArea').textContent}`
-  ];
-  download('talkhurricane-meeting.txt', lines.join('\n\n'), 'text/plain');
-  toast('✅ TXT 已导出','success');
-}
-
-function download(filename, content, type) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([content], {type}));
-  a.download = filename;
-  a.click();
-}
-
-async function saveToFirebase() {
-  if (!window._firebaseReady) { toast('Firebase 未就绪','error'); return; }
-  try {
-    const docRef = await window._fsAddDoc(
-      window._fsCollection(window._db, 'meetings'),
-      {
-        sessionId: state.sessionId,
-        topic: state.topic,
-        mode: state.mode,
-        agents: state.agents.map(a=>({name:a.name,role:a.role})),
-        messages: state.messages.slice(-50),
-        summary: document.getElementById('summaryBox').textContent,
-        createdAt: window._fsServerTimestamp()
-      }
-    );
-    toast(`☁️ 已保存到云端 (ID: ${docRef.id.slice(0,8)})`, 'success');
-  } catch(e) {
-    toast('云端保存失败: '+e.message, 'error');
+// ── QUICK START ────────────────────────────────────────────────
+var PRESETS={
+  ai_future:{
+    topic:'Will AI replace most human jobs?', mode:'debate',
+    agents:[
+      {name:'Tech Optimist Leo',role:'AI Researcher',color:'#7b68ee',ptags:['🔥 Aggressive','🧠 Rational'],stance:'pro',temp:0.8,
+       prompt:'You firmly believe AI will transform employment for the better. Use enthusiastic, evidence-backed arguments.'},
+      {name:'Humanist Maya',role:'Sociologist',color:'#f87171',ptags:['🤝 Mediator','🌍 Global view'],stance:'con',temp:0.7,
+       prompt:'You worry about AI displacing low-income workers and emphasize the need for policy safeguards.'},
+      {name:'Referee Sage',role:'Debate Judge',color:'#34d399',ptags:['🔍 Critical','📊 Data-driven'],stance:'judge',temp:0.3,
+       prompt:'You are an impartial judge. Assess logic, evidence, and argumentation quality objectively.'}
+    ]
+  },
+  climate:{
+    topic:'How should nations balance economic growth and emissions reduction?', mode:'roundtable',
+    agents:[
+      {name:'Viktor (Dev World)',role:'Developing Nation Rep',color:'#f59e0b',ptags:['🛡️ Conservative'],stance:'neutral',temp:0.7,
+       prompt:'Represent developing nations. Emphasize the right to economic development.'},
+      {name:'Aria (Greenpeace)',role:'Environmental Advocate',color:'#34d399',ptags:['🔥 Aggressive','🌍 Global view'],stance:'neutral',temp:0.8,
+       prompt:'Radical environmental advocate. Demand immediate action regardless of economic cost.'},
+      {name:'Nova (Tech Path)',role:'Clean Energy Expert',color:'#38bdf8',ptags:['🧠 Rational','🎨 Creative'],stance:'neutral',temp:0.6,
+       prompt:'Believe technology — CCS, nuclear, renewables — can solve climate without sacrificing growth.'}
+    ]
+  },
+  startup:{
+    topic:'Design a world-changing product for Gen Z', mode:'brainstorm',
+    agents:[
+      {name:'Zara (Product)',role:'Chief Product Officer',color:'#e879f9',ptags:['🎨 Creative','🔥 Aggressive'],stance:'neutral',temp:0.95,
+       prompt:'Wildly creative product person. No idea is too crazy. Think bold, fast, viral.'},
+      {name:'Kai (Engineering)',role:'CTO',color:'#38bdf8',ptags:['🧠 Rational','🔍 Critical'],stance:'neutral',temp:0.5,
+       prompt:'Pragmatic engineer. Evaluate feasibility and propose realistic MVPs.'},
+      {name:'Lex (Growth)',role:'Head of Growth',color:'#f59e0b',ptags:['📊 Data-driven'],stance:'neutral',temp:0.7,
+       prompt:'Market-focused. Validate ideas with TAM, CAC, and growth vectors.'}
+    ]
+  },
+  philosophy:{
+    topic:'Does free will truly exist, or are we just products of causality?', mode:'debate',
+    agents:[
+      {name:'Determinist Hume',role:'Philosopher',color:'#7b68ee',ptags:['🧠 Rational','📊 Data-driven'],stance:'pro',temp:0.7,
+       prompt:'Hard determinist. Use neuroscience and physics to argue free will is an illusion.'},
+      {name:'Existentialist',role:'Philosopher',color:'#f59e0b',ptags:['🎭 Emotional','🔥 Aggressive'],stance:'con',temp:0.8,
+       prompt:'Existentialist. Defend radical freedom and human agency with passion.'}
+    ]
+  },
+  werewolf:{
+    topic:'A village is threatened by werewolves — who are the wolves?', mode:'werewolf',
+    agents:[
+      {name:'Alice',role:'???',color:'#7b68ee',ptags:['🎭 Emotional'],stance:'neutral',temp:0.8,prompt:'Play your secret role in Werewolf. You may lie, accuse, or deceive.'},
+      {name:'Bob',role:'???',color:'#38bdf8',ptags:['🔍 Critical'],stance:'neutral',temp:0.7,prompt:'Play your secret role. Analyze contradictions and reason out the wolves.'},
+      {name:'Carol',role:'???',color:'#34d399',ptags:['🤝 Mediator'],stance:'neutral',temp:0.6,prompt:'Play your secret role. Be cautious and observe before committing.'},
+      {name:'Dave',role:'???',color:'#f59e0b',ptags:['🔥 Aggressive'],stance:'neutral',temp:0.9,prompt:'Play your secret role. Aggressively push your agenda and control the vote.'}
+    ]
+  },
+  court:{
+    topic:'Trial: TechCorp accused of illegally harvesting user data without consent', mode:'court',
+    agents:[
+      {name:'Judge Chen',role:'Judge',color:'#a594f9',ptags:['🧠 Rational','🛡️ Conservative'],stance:'judge',temp:0.3,
+       prompt:'Maintain courtroom order. Rule on objections. Deliver a verdict based on evidence.'},
+      {name:'Prosecutor Kim',role:'Prosecutor',color:'#f87171',ptags:['🔥 Aggressive','📊 Data-driven'],stance:'pro',temp:0.7,
+       prompt:'Represent the public. Build an airtight case with evidence against TechCorp.'},
+      {name:'Defense Park',role:'Defense Lawyer',color:'#38bdf8',ptags:['🎭 Emotional','🔍 Critical'],stance:'con',temp:0.7,
+       prompt:'Defend TechCorp. Challenge evidence, cite industry standards, seek acquittal.'}
+    ]
   }
-}
+};
 
-// ════════════════════════════════════════════════════════════
-//  QUICK START
-// ════════════════════════════════════════════════════════════
-function quickStart(type) {
-  const configs = {
-    ai_future: {
-      topic: '人工智能是否会取代人类大部分工作？', mode: 'debate',
-      agents: [
-        {name:'技术乐观派 Leo', role:'AI研究员', color:'#7c6dfa', stance:'pro', temp:0.8,
-         personalities:['🔥 激进进取','🧠 理性分析'],
-         prompt:'你坚信AI会彻底改变就业市场，并为此提供乐观的技术进步案例。'},
-        {name:'人文关怀派 Maya', role:'社会学家', color:'#f87171', stance:'con', temp:0.7,
-         personalities:['🤝 协调中立','🌍 全球视野'],
-         prompt:'你担忧AI对低收入群体的冲击，强调人文关怀和政策保障的必要性。'},
-        {name:'裁判 Sage', role:'评委', color:'#34d399', stance:'judge', temp:0.3,
-         personalities:['🔍 批判质疑','📊 数据导向'],
-         prompt:'你是公正的评委，分析双方论证的逻辑性和证据充分性。'}
-      ]
-    },
-    climate: {
-      topic: '全球气候变化：各国应如何平衡发展与减排？', mode: 'roundtable',
-      agents: [
-        {name:'经济优先 Viktor', role:'发展中国家代表', color:'#f59e0b', stance:'neutral', temp:0.7,
-         personalities:['🛡️ 保守稳健','📊 数据导向'],
-         prompt:'代表发展中国家，强调经济发展权利，反对不公平的减排限制。'},
-        {name:'绿色倡导 Aria', role:'环保组织代表', color:'#34d399', stance:'neutral', temp:0.8,
-         personalities:['🔥 激进进取','🌍 全球视野'],
-         prompt:'激进的环保倡导者，要求立即行动，不惜任何经济代价。'},
-        {name:'技术路径 Nova', role:'清洁能源专家', color:'#38bdf8', stance:'neutral', temp:0.6,
-         personalities:['🧠 理性分析','🎨 创意发散'],
-         prompt:'相信技术创新能解决气候问题，推崇碳捕捉和核能等方案。'}
-      ]
-    },
-    startup: {
-      topic: '为Z世代打造一个改变世界的科技产品', mode: 'brainstorm',
-      agents: [
-        {name:'产品狂人 Zara', role:'首席产品官', color:'#e879f9', stance:'neutral', temp:0.95,
-         personalities:['🎨 创意发散','🔥 激进进取'],
-         prompt:'极富创意的产品人，不受约束地提出颠覆性产品概念。'},
-        {name:'务实工程师 Kai', role:'技术总监', color:'#38bdf8', stance:'neutral', temp:0.5,
-         personalities:['🧠 理性分析','🔍 批判质疑'],
-         prompt:'注重技术可行性，对创意进行技术评估，提出MVP方案。'},
-        {name:'市场猎手 Lex', role:'增长负责人', color:'#f59e0b', stance:'neutral', temp:0.7,
-         personalities:['📊 数据导向','🌍 全球视野'],
-         prompt:'专注市场规模和商业化路径，用数据验证创意。'}
-      ]
-    },
-    philosophy: {
-      topic: '自由意志是否真实存在？人类行为是否只是因果链的产物？', mode: 'debate',
-      agents: [
-        {name:'决定论者 Hume', role:'哲学家', color:'#7c6dfa', stance:'pro', temp:0.7,
-         personalities:['🧠 理性分析','📊 数据导向'],
-         prompt:'坚定的决定论者，用物理学和神经科学论证自由意志是幻觉。'},
-        {name:'存在主义者 Sartre', role:'哲学家', color:'#f59e0b', stance:'con', temp:0.8,
-         personalities:['🎭 情绪感染','🔥 激进进取'],
-         prompt:'存在主义者，坚信人的选择自由，激情捍卫主观能动性。'}
-      ]
-    },
-    werewolf: {
-      topic: '村庄遭到狼人威胁，谁是隐藏的狼人？', mode: 'werewolf',
-      agents: [
-        {name:'Alice', role:'', color:'#7c6dfa', stance:'neutral', temp:0.8,
-         personalities:['🎭 情绪感染'],
-         prompt:'你在狼人杀游戏中，根据自己的秘密身份行动。说话自然，可以撒谎。'},
-        {name:'Bob', role:'', color:'#38bdf8', stance:'neutral', temp:0.7,
-         personalities:['🔍 批判质疑'],
-         prompt:'你在狼人杀游戏中，善于分析他人发言中的矛盾，推理出狼人。'},
-        {name:'Carol', role:'', color:'#34d399', stance:'neutral', temp:0.6,
-         personalities:['🤝 协调中立'],
-         prompt:'你在狼人杀游戏中，谨慎发言，不轻易表态，观察各方反应。'},
-        {name:'Dave', role:'', color:'#f59e0b', stance:'neutral', temp:0.9,
-         personalities:['🔥 激进进取'],
-         prompt:'你在狼人杀游戏中，激进地指控他人，试图主导投票方向。'}
-      ]
-    },
-    court: {
-      topic: '案件：一家科技公司被指控非法收集用户数据', mode: 'court',
-      agents: [
-        {name:'法官 Chen', role:'法官', color:'#a78bfa', stance:'judge', temp:0.3,
-         personalities:['🧠 理性分析','🛡️ 保守稳健'],
-         prompt:'你是严肃的法官，维护庭审秩序，依据法律条文作出裁判。'},
-        {name:'检察官 Kim', role:'检察官', color:'#f87171', stance:'pro', temp:0.7,
-         personalities:['🔥 激进进取','📊 数据导向'],
-         prompt:'你代表公众利益，用证据证明被告违规行为，要求严厉惩处。'},
-        {name:'辩护律师 Park', role:'辩护律师', color:'#38bdf8', stance:'con', temp:0.7,
-         personalities:['🎭 情绪感染','🔍 批判质疑'],
-         prompt:'你为科技公司辩护，质疑指控证据，援引行业惯例和技术限制。'}
-      ]
-    }
-  };
-  const c = configs[type];
-  if (!c) return;
-  document.getElementById('topicInput').value = c.topic;
-  state.agents = c.agents.map(a => ({...a, id:uid(), hiddenRole:null}));
+function quickStart(key){
+  var c=PRESETS[key]; if(!c) return;
+  // set topic
+  var sel=G('topicSelect'), found=false;
+  for(var i=0;i<sel.options.length;i++){
+    if(sel.options[i].value===c.topic){ sel.value=c.topic; found=true; break; }
+  }
+  if(!found){ sel.value='custom'; G('customTopic').value=c.topic; G('customTopicWrap').classList.remove('hidden'); }
+  S.agents=c.agents.map(function(a){ return Object.assign({},a,{id:uid(),hiddenRole:null,providerOverride:''}); });
+  S.emotions={};
+  S.agents.forEach(function(a){ S.emotions[a.id]={icon:'😐',name:'Neutral'}; });
   setMode(c.mode);
-  if (c.mode === 'werewolf') autoAssignWerewolfRoles();
-  else renderAgents();
-  toast(`🚀 已加载：${c.topic.slice(0,20)}...`,'success');
+  if(c.mode!=='werewolf') renderAgents();
+  showToast('Loaded: '+c.topic.slice(0,30)+'…','ok');
 }
 
-// ════════════════════════════════════════════════════════════
-//  INIT
-// ════════════════════════════════════════════════════════════
-initDefaultAgents();
-updateEmotionGrid();
+// ── INIT ───────────────────────────────────────────────────────
+function init(){
+  S.agents=[
+    {id:uid(),name:'Rational Alex',role:'Systems Analyst',color:'#7b68ee',ptags:['🧠 Rational','📊 Data-driven'],stance:'neutral',temp:0.5,hiddenRole:null,providerOverride:'',
+     prompt:'You are an extremely rational analyst. Use data and logic. Be concise and expose weaknesses in arguments.'},
+    {id:uid(),name:'Challenger Nova',role:'Innovation Advocate',color:'#f59e0b',ptags:['🔥 Aggressive','🎨 Creative'],stance:'pro',temp:0.9,hiddenRole:null,providerOverride:'',
+     prompt:'You are a bold innovator. Propose disruptive ideas. Embrace risk. Challenge the status quo energetically.'},
+    {id:uid(),name:'Pragmatist Sage',role:'Risk Assessor',color:'#38bdf8',ptags:['🛡️ Conservative','🔍 Critical'],stance:'con',temp:0.4,hiddenRole:null,providerOverride:'',
+     prompt:'You are a seasoned pragmatist. Highlight risks, cite historical failures, insist on feasibility over vision.'}
+  ];
+  S.agents.forEach(function(a){ S.emotions[a.id]={icon:'😐',name:'Neutral'}; });
+  loadSettings();
+  renderAgents();
+}
 
-// Init emotion states
-state.agents.forEach(a => {
-  state.emotions[a.id] = {icon:'😐', name:'平静'};
-});
+// ── PUBLIC API (global, accessible from onclick) ───────────────
+window.TH={
+  setMode:setMode,
+  openAddAgent:openAddAgent, editAgent:editAgent, saveAgent:saveAgent, removeAgent:removeAgent,
+  pickColor:pickColor, togglePtag:togglePtag,
+  openModal:openModal, closeModal:closeModal,
+  startMeeting:startMeeting, stopMeeting:stopMeeting,
+  sendUser:sendUser, handleKey:handleKey, resize:resize,
+  generateSummary:generateSummary,
+  toggleExport:toggleExport, exportMD:exportMD, exportJSON:exportJSON, exportTXT:exportTXT, saveCloud:saveCloud,
+  resetTimer:resetTimer, toggleTimer:toggleTimer,
+  quickStart:quickStart, onTopicChange:onTopicChange,
+  saveSettings:saveSettings, toggleKeyVis:toggleKeyVis
+};
+
+init();
+})();
 </script>
 </body>
 </html>
