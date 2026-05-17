@@ -379,12 +379,7 @@ hr.div{border:none;border-top:1px solid var(--line);margin:8px 0}
 .soul-box{background:var(--bg3);border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-top:8px}
 .soul-box-title{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--t3);margin-bottom:8px}
 
-/* theme toggle mini modal */
-.theme-modal{position:fixed;bottom:72px;left:8px;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r2);padding:12px;z-index:500;box-shadow:var(--shadow);min-width:160px;display:none}
-.theme-modal.open{display:block}
-.tm-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r);cursor:pointer;font-size:13px;color:var(--t2);transition:all .2s}
-.tm-item:hover{background:var(--bg3);color:var(--t1)}
-.tm-item.active{color:var(--p2);background:var(--p3)}
+/* theme modal removed — direct toggle */
 
 /* toast */
 .toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r2);padding:11px 18px;font-size:13px;color:var(--t1);z-index:5000;box-shadow:var(--shadow);transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none;display:flex;align-items:center;gap:8px;max-width:320px}
@@ -396,6 +391,111 @@ hr.div{border:none;border-top:1px solid var(--line);margin:8px 0}
 @media(max-width:900px){.sess-sidebar{width:190px}}
 @media(max-width:680px){#page-session{flex-direction:column}.sess-sidebar{width:100%;height:auto;flex-direction:row;border-right:none;border-bottom:1px solid var(--line)}}
 @media(max-width:580px){.home-modes{grid-template-columns:repeat(2,1fr)}.mode-cards{grid-template-columns:1fr}}
+
+/* ── Enhanced polish ── */
+.nav-item { transition: all .18s cubic-bezier(.4,0,.2,1) }
+.mode-tile { transition: all .22s cubic-bezier(.4,0,.2,1) }
+.mode-card-wiz { transition: all .18s cubic-bezier(.4,0,.2,1) }
+.agent-card-g { transition: all .22s cubic-bezier(.4,0,.2,1) }
+.btn { transition: all .18s cubic-bezier(.4,0,.2,1) }
+
+/* nav theme button glows when switching */
+#navThemeBtn:hover { background: var(--p3) !important }
+#navThemeBtn:hover .ni-icon { filter: drop-shadow(0 0 6px var(--glow)) }
+#navThemeBtn:active { transform: scale(.96) }
+
+/* mode-tile polish */
+.mode-tile:active { transform: translateY(0) scale(.98) }
+.mode-tile .ti { transition: transform .2s }
+.mode-tile:hover .ti { transform: scale(1.15) }
+
+/* agent card hover */
+.agent-card-g:hover { box-shadow: 0 4px 20px rgba(108,99,255,.15) }
+
+/* session sidebar section borders */
+.sess-sidebar > * { border-bottom: 1px solid var(--line) }
+.sess-sidebar > *:last-child { border-bottom: none }
+
+/* score fills animated gradient */
+#sfLogic   { background: linear-gradient(90deg, var(--p), var(--p2)) }
+#sfEmotion { background: linear-gradient(90deg, var(--cyan), #67e8f9) }
+#sfEvidence{ background: linear-gradient(90deg, var(--gold), #fde68a) }
+#sfCreative{ background: linear-gradient(90deg, var(--green), #6ee7b7) }
+
+/* chat bubble polish */
+.bubble { transition: none }
+.bubble:not(.user):not(.streaming) { border-left: 2px solid transparent }
+.msg-wrap:hover .bubble { border-color: var(--line2) }
+
+/* wizard steps */
+.wiz-sec-title { display: flex; align-items: center; gap: 8px }
+.wiz-sec-title::after { content: ''; flex: 1; height: 1px; background: var(--line) }
+
+/* config panel polish */
+#cfg-brainstorm.config-panel { border-left: 3px solid rgba(251,191,36,.4) }
+#cfg-debate.config-panel    { border-left: 3px solid rgba(251,113,133,.4) }
+#cfg-roundtable.config-panel{ border-left: 3px solid rgba(34,211,238,.4) }
+#cfg-court.config-panel     { border-left: 3px solid rgba(249,115,22,.4) }
+#cfg-werewolf.config-panel  { border-left: 3px solid rgba(167,139,250,.4) }
+#cfg-story.config-panel     { border-left: 3px solid rgba(52,211,153,.4) }
+.cfg-row { transition: opacity .15s }
+
+/* round dots */
+.ri-dot { cursor: default; transition: all .25s cubic-bezier(.4,0,.2,1) }
+.ri-dot.current { animation: dot-pulse 2s ease infinite }
+@keyframes dot-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.4)}50%{box-shadow:0 0 0 5px rgba(251,191,36,0)} }
+
+/* sa-item hover */
+.sa-item { cursor: default; border-radius: var(--r) }
+.sa-item:not(.speaking):hover { background: var(--bg3) }
+
+/* idea nodes */
+.it-node { animation: node-in .25s ease; cursor: default }
+@keyframes node-in { from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)} }
+
+/* home page polish */
+.home-hero { padding: 20px 0 }
+
+/* settings section polish */
+.settings-section { transition: box-shadow .2s }
+.settings-section:hover { box-shadow: 0 0 0 1px var(--line2) }
+
+/* export dropdown polish */
+.drop-item { transition: all .15s }
+.drop-item:active { transform: scale(.98) }
+
+/* form inputs */
+input[type=text]:hover, select:hover, textarea:hover { border-color: var(--line2) }
+
+/* scrollbar in dark */
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.08) }
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.10) }
+
+/* topbar shadow */
+#topbar { box-shadow: 0 1px 0 var(--line) }
+
+/* stance box polish */
+.stance-box { border-left: 3px solid var(--rose) }
+.stance-box .stance-label.pro { border-bottom: 1.5px solid var(--p) }
+.stance-box .stance-label.con { border-bottom: 1.5px solid var(--rose) }
+
+/* built-in agent preview */
+.ba-item { transition: background .15s }
+.ba-item:hover { background: var(--bg4) }
+
+/* verdict/wolf boxes */
+.verdict-box { background: linear-gradient(135deg, rgba(251,191,36,.03), rgba(249,115,22,.03)) }
+.wolf-suspect-list { background: linear-gradient(135deg, rgba(251,113,133,.03), transparent) }
+
+/* note box polish */
+.note-box { animation: note-in .35s cubic-bezier(.4,0,.2,1) }
+@keyframes note-in { from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)} }
+
+/* smooth page transitions */
+.page { animation: page-in .25s ease }
+@keyframes page-in { from{opacity:0}to{opacity:1} }
+.page.hidden { animation: none }
+
 </style>
 </head>
 <body>
@@ -427,18 +527,14 @@ hr.div{border:none;border-top:1px solid var(--line);margin:8px 0}
   <div class="nav-history" id="navHistory"></div>
   <div class="nav-bottom">
     <!-- Theme toggle button — just toggles theme, no navigation -->
-    <div class="nav-item" id="navThemeBtn" onclick="TH.toggleThemePopup()">
+    <div class="nav-item" id="navThemeBtn" onclick="TH.toggleThemeDirect()">
       <span class="ni-icon" id="navThemeIcon">🌙</span>
       <span class="ni-text" id="navThemeLabel" data-i="nav_theme">深色模式</span>
     </div>
   </div>
 </nav>
 
-<!-- Theme popup (bottom-left, above nav item) -->
-<div class="theme-modal" id="themeModal">
-  <div class="tm-item active" id="tmDark" onclick="TH.setTheme('dark')">🌙 <span data-i="theme_dark">深色模式</span></div>
-  <div class="tm-item" id="tmLight" onclick="TH.setTheme('light')">☀️ <span data-i="theme_light">浅色模式</span></div>
-</div>
+<!-- theme popup removed -->
 
 <!-- MAIN -->
 <div id="main">
@@ -771,6 +867,7 @@ hr.div{border:none;border-top:1px solid var(--line);margin:8px 0}
         <div class="dt-bar-wrap"><div class="dt-bar con" id="dtBarCon" style="width:0%"></div></div>
         <span class="dt-time" id="dtTimeCon">00:00</span>
       </div>
+      <div style="font-size:9px;color:var(--t3);margin-top:4px;text-align:right" id="dtMaxLabel"></div>
     </div>
     <!-- Debate win rate -->
     <div class="debate-bar hidden" id="debateWinrate">
@@ -1256,8 +1353,7 @@ var S = {
   uiLang:'zh',
   provider:'anthropic',
   models:{anthropic:'claude-sonnet-4-20250514',openai:'gpt-4o',deepseek:'deepseek-chat',qwen:'qwen-turbo'},
-  keys:{anthropic:'',openai:'',deepseek:'',qwen:''},
-  themePopupOpen:false
+  keys:{anthropic:'',openai:'',deepseek:'',qwen:''}
 };
 
 function t(key){ return (STRINGS[S.uiLang]||STRINGS.zh)[key] || (STRINGS.zh)[key] || key; }
@@ -1294,7 +1390,12 @@ function applyI18n(){
   document.querySelectorAll('[data-i]').forEach(function(el){
     var key = el.getAttribute('data-i');
     var val = t(key);
-    if(val) el.textContent = val;
+    if(!val) return;
+    if(val.indexOf('\n') > -1) {
+      el.innerHTML = val.split('\n').map(function(s){return s?'<span>'+esc(s)+'</span>':'';}).join('<br>');
+    } else {
+      el.textContent = val;
+    }
   });
   document.querySelectorAll('[data-i-placeholder]').forEach(function(el){
     var key = el.getAttribute('data-i-placeholder');
@@ -1303,6 +1404,44 @@ function applyI18n(){
   });
   // update html lang attr
   document.documentElement.lang = S.uiLang;
+  // swap topic dropdown options
+  var topicOpts = {
+    zh: {
+      'Will AI replace most human jobs?': '🤖 人工智能是否会取代大多数人类工作？',
+      'How should nations balance growth and emissions?': '🌍 各国应如何平衡经济增长与减排目标？',
+      'Design a world-changing product for Gen Z': '🚀 为Z世代设计一款改变世界的产品',
+      'Does free will truly exist?': '🧠 自由意志是否真实存在？',
+      'Is social media harmful to democracy?': '📱 社交媒体是否对民主有害？',
+      'Should universal basic income be global?': '💰 全民基本收入辩论',
+      'The ethics of human genetic engineering': '🧬 人类基因工程的伦理边界',
+      'Can nuclear energy solve the climate crisis?': '☢️ 核能是否能解决气候危机？',
+      'A village is threatened by werewolves — who are the wolves?': '🐺 村庄狼人之谜',
+      'Tech company trial: accused of illegal data collection': '⚖️ 科技公司数据泄露审判'
+    }
+  };
+  var selEl = G('wizTopicSelect');
+  if(selEl) {
+    Array.from(selEl.options).forEach(function(opt) {
+      if(opt.value === 'custom') return;
+      if(S.uiLang === 'en') {
+        // find if this was a Chinese value, swap to English
+        Object.keys(topicOpts.zh).forEach(function(enKey) {
+          if(opt.value === topicOpts.zh[enKey] || opt.value === enKey) {
+            opt.value = enKey;
+            opt.text = enKey;
+          }
+        });
+      } else {
+        // swap back to Chinese
+        Object.keys(topicOpts.zh).forEach(function(enKey) {
+          if(opt.value === enKey || opt.value === topicOpts.zh[enKey]) {
+            opt.value = topicOpts.zh[enKey];
+            opt.text = topicOpts.zh[enKey];
+          }
+        });
+      }
+    });
+  }
   // update topic options (keep values, just translate labels for custom)
   var customOpt = document.querySelector('#wizTopicSelect option[value="custom"]');
   if(customOpt) customOpt.textContent = t('topic_custom');
@@ -1322,6 +1461,7 @@ function setUILang(lang){
   // refresh page titles
   goPage(S.page, true);
   renderHistory();
+  applyTheme(S.theme); // refresh theme label text for new lang
   toastMsg(lang==='zh'?'已切换为中文界面':'UI language set to English','ok');
 }
 
@@ -1366,23 +1506,15 @@ function setTheme(t_){
   if(tli) tli.classList.toggle('active',!isDark);
   var ni=G('navThemeIcon'),nl=G('navThemeLabel');
   if(ni) ni.textContent = isDark?'🌙':'☀️';
-  if(nl) nl.textContent = isDark?t('nav_theme'):(S.uiLang==='en'?'Light Mode':'浅色模式');
+  if(nl) nl.textContent = isDark?(S.uiLang==='en'?'Dark Mode':'深色模式'):(S.uiLang==='en'?'Light Mode':'浅色模式');
   saveAll();
-  closeThemePopup();
 }
 
-function toggleThemePopup(){
-  S.themePopupOpen = !S.themePopupOpen;
-  var el = G('themeModal');
-  if(el) el.classList.toggle('open', S.themePopupOpen);
-}
-function closeThemePopup(){
-  S.themePopupOpen = false;
-  var el = G('themeModal');
-  if(el) el.classList.remove('open');
+function toggleThemeDirect(){
+  setTheme(S.theme==='dark'?'light':'dark');
 }
 document.addEventListener('click',function(e){
-  if(!e.target.closest('#navThemeBtn')&&!e.target.closest('#themeModal')) closeThemePopup();
+  /* theme popup removed */
   if(!e.target.closest('.drop-wrap')) { var dm=G('exportMenu'); if(dm) dm.classList.remove('open'); }
 });
 
@@ -1517,7 +1649,7 @@ function editAgent(id){
 function saveAgent(){
   var name=(G('aName').value||'').trim();
   if(!name){toast('agent_name','err');return;}
-  var data={id:S.editAgentId||uid(),name:name,role:(G('aRole').value||'').trim()||t('agent_role_ph').split('…')[0],emoji:SELECTED_AVATAR.e,bg:SELECTED_AVATAR.bg,ptags:S.agentPtags.slice(),soul:(G('aSoul').value||'').trim(),provider:G('aProvider').value||'',temp:parseFloat(G('aTemp').value)/10};
+  var data={id:S.editAgentId||uid(),name:name,role:(G('aRole').value||'').trim()||(S.uiLang==='en'?'Participant':'参与者'),emoji:SELECTED_AVATAR.e,bg:SELECTED_AVATAR.bg,ptags:S.agentPtags.slice(),soul:(G('aSoul').value||'').trim(),provider:G('aProvider').value||'',temp:parseFloat(G('aTemp').value)/10};
   if(S.editAgentId){var i=S.agents.findIndex(function(a){return a.id===S.editAgentId;}); if(i>-1) S.agents[i]=data;}
   else S.agents.push(data);
   saveAll(); closeModal('agentModal'); renderAgentsPage();
@@ -1671,7 +1803,13 @@ function quickNewMode(mode){ goPage('new'); selectWizMode(mode); }
 // ════════════════════════════════════════
 function startSession(){
   var key=S.keys[S.provider];
-  if(!key){toast('toast_no_key','err');return;}
+  if(!key){
+    toast('toast_no_key','err');
+    // highlight settings nav item briefly
+    var ni=G('ni-settings');
+    if(ni){ni.style.background='rgba(251,113,133,.15)';setTimeout(function(){ni.style.background='';},1500);}
+    return;
+  }
   var mode=S.wizMode;
   var topic=getWizTopic();
   var cfg=readWizConfig(mode);
@@ -1810,7 +1948,8 @@ function finishSession(){
   addSysMsg(t('sys_end'));
   var sc=G('sessionControls'); if(sc) sc.style.display='none';
   addToHistory(S.session);
-  if(S.session.config.notes!==false) generateSummary();
+  var autoSum=S.session.mode==='roundtable'?S.session.config.notes:S.session.mode==='brainstorm'||S.session.mode==='debate'||S.session.mode==='court'||S.session.mode==='story'?false:false;
+  if(autoSum) generateSummary();
 }
 
 // ─── BRAINSTORM ───
@@ -1845,6 +1984,8 @@ function runDebate(){
   var sess=S.session,cfg=sess.config;
   addSysMsg(t('sys_start')+sess.topic);
   startDebateTimer(sess);
+  var dtMax=G('dtMaxLabel');
+  if(dtMax) dtMax.textContent=(S.uiLang==='en'?'Max: ':'限时: ')+fmtSecs(cfg.time||180)+(S.uiLang==='en'?' per side':' / 方');
   var chain=Promise.resolve();
   for(var r=0;r<cfg.rounds;r++){
     (function(ri){
@@ -2209,7 +2350,10 @@ function addMsgTags(bubId,text){
 function renderAllMessages(){
   var chat=G('chatMessages'); if(!chat) return;
   chat.innerHTML='';
-  if(!S.session||!S.session.messages.length) return;
+  if(!S.session||!S.session.messages.length){
+    chat.innerHTML='<div class="sys-msg" style="margin:auto">'+(S.uiLang==='en'?'Session loaded — start speaking to continue.':'会话已加载 — 开始发言以继续。')+'</div>';
+    return;
+  }
   S.session.messages.forEach(function(m){
     if(m.agentId==='host'){
       appendUserDirect(m.text,m.time);
@@ -2439,7 +2583,7 @@ window.TH={
   sendUserMsg:sendUserMsg, handleInputKey:handleInputKey, autoResize:autoResize,
   generateSummary:generateSummary,
   saveSettings:saveSettings, toggleKey:toggleKey,
-  setTheme:setTheme, toggleThemePopup:toggleThemePopup,
+  setTheme:setTheme, toggleThemeDirect:toggleThemeDirect,
   setUILang:setUILang,
   toggleExport:toggleExport, exportMD:exportMD, exportJSON:exportJSON, exportTXT:exportTXT, saveCloud:saveCloud,
   quickNewMode:quickNewMode
@@ -2457,6 +2601,11 @@ applyI18n();
 G('uiLangZh').classList.toggle('active',S.uiLang==='zh');
 G('uiLangEn').classList.toggle('active',S.uiLang==='en');
 renderHistory();
+// show key status on boot
+['anthropic','openai','deepseek','qwen'].forEach(function(p){
+  var el=G('keyStatus'+ucfirst(p));
+  if(el) el.innerHTML=S.keys[p]?'<span style="color:var(--green)">✓ '+(S.uiLang==='en'?'Configured':'已配置')+'</span>':'';
+});
 goPage('home');
 
 })();
