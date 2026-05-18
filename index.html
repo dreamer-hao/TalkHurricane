@@ -1494,19 +1494,19 @@ function ucfirst(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
 // ════════════════════════════════════════
 // THEME
 // ════════════════════════════════════════
-function setTheme(t_){
-  S.theme = t_;
+function applyTheme(t_){
   document.documentElement.setAttribute('data-theme', t_);
   var isDark = t_==='dark';
   var di=G('themeOptDark'),li=G('themeOptLight');
   if(di) di.classList.toggle('active',isDark);
   if(li) li.classList.toggle('active',!isDark);
-  var tdi=G('tmDark'),tli=G('tmLight');
-  if(tdi) tdi.classList.toggle('active',isDark);
-  if(tli) tli.classList.toggle('active',!isDark);
   var ni=G('navThemeIcon'),nl=G('navThemeLabel');
   if(ni) ni.textContent = isDark?'🌙':'☀️';
   if(nl) nl.textContent = isDark?(S.uiLang==='en'?'Dark Mode':'深色模式'):(S.uiLang==='en'?'Light Mode':'浅色模式');
+}
+function setTheme(t_){
+  S.theme = t_;
+  applyTheme(t_);
   saveAll();
 }
 
@@ -1544,6 +1544,7 @@ function goPage(name, silent){
   if(sc){ sc.style.display = name==='session'?'flex':'none'; }
   if(name==='agents'&&!silent)  renderAgentsPage();
   if(name==='new'&&!silent)     initWizard();
+  if(name==='home'||name==='settings') applyI18n();
 }
 
 // ════════════════════════════════════════
@@ -1605,6 +1606,7 @@ function initDefaultAgents(){
 
 function renderAgentsPage(){
   var grid=G('agentsGrid'); if(!grid) return;
+  applyI18n();
   var addLabel=S.uiLang==='en'?'New Agent':'新建智能体';
   var html=S.agents.map(function(a){
     return '<div class="agent-card-g">'
@@ -1669,21 +1671,21 @@ function togglePtag(el){
 // ════════════════════════════════════════
 var BUILTIN = {
   debate: [
-    {e:'🎩',bg:'#f97316',name:'Leo',role:'正方-主辩',soul:'You are the lead Pro debater. Argue forcefully for the Pro stance using facts, emotion, and rhetorical skill. Counter the Con side directly.',isFixed:true,stance:'pro'},
-    {e:'🌟',bg:'#fbbf24',name:'Aria',role:'正方-二辩',soul:'You are the Pro second speaker. Support your lead and add new angles and evidence to strengthen the Pro argument.',isFixed:true,stance:'pro'},
-    {e:'🗡️',bg:'#fb7185',name:'Rex',role:'反方-主辩',soul:'You are the lead Con debater. Argue powerfully against the Pro stance. Use logic, evidence, and sharp rebuttals.',isFixed:true,stance:'con'},
-    {e:'⚔️',bg:'#f43f5e',name:'Nyx',role:'反方-二辩',soul:'You are the Con second speaker. Back up your lead and expose flaws in the Pro argument with precision.',isFixed:true,stance:'con'},
-    {e:'🎙️',bg:'#94a3b8',name:'Host',role:'主持人',soul:'You are the debate moderator. Keep order, introduce rounds, ask challenging questions to both sides, and ensure fair play.',isFixed:true,stance:'mod'},
-    {e:'⚖️',bg:'#a78bfa',name:'Judge',role:'评委',soul:'You are the debate judge. Evaluate logic, evidence, and persuasion. Give scores and brief commentary after each round.',isFixed:true,stance:'judge'},
-    {e:'👥',bg:'#22d3ee',name:'Crowd',role:'观众AI',soul:'You represent the audience reaction. Express genuine surprise, agreement, or doubt based on what was said. Be concise and human.',isFixed:true,stance:'audience'},
-    {e:'📋',bg:'#34d399',name:'Summary',role:'总结AI',soul:'You are the summary AI. After all rounds, provide a comprehensive neutral summary covering both sides\' best arguments and a final assessment.',isFixed:true,stance:'summary'}
+    {e:'🎩',bg:'#f97316',name:'Leo',role:'正方-主辩',roleEn:'Pro Lead',soul:'You are the lead Pro debater. Argue forcefully for the Pro stance using facts, emotion, and rhetorical skill. Counter the Con side directly.',isFixed:true,stance:'pro'},
+    {e:'🌟',bg:'#fbbf24',name:'Aria',role:'正方-二辩',roleEn:'Pro 2nd Speaker',soul:'You are the Pro second speaker. Support your lead and add new angles and evidence to strengthen the Pro argument.',isFixed:true,stance:'pro'},
+    {e:'🗡️',bg:'#fb7185',name:'Rex',role:'反方-主辩',roleEn:'Con Lead',soul:'You are the lead Con debater. Argue powerfully against the Pro stance. Use logic, evidence, and sharp rebuttals.',isFixed:true,stance:'con'},
+    {e:'⚔️',bg:'#f43f5e',name:'Nyx',role:'反方-二辩',roleEn:'Con 2nd Speaker',soul:'You are the Con second speaker. Back up your lead and expose flaws in the Pro argument with precision.',isFixed:true,stance:'con'},
+    {e:'🎙️',bg:'#94a3b8',name:'Host',role:'主持人',roleEn:'Moderator',soul:'You are the debate moderator. Keep order, introduce rounds, ask challenging questions to both sides, and ensure fair play.',isFixed:true,stance:'mod'},
+    {e:'⚖️',bg:'#a78bfa',name:'Judge',role:'评委',roleEn:'Judge',soul:'You are the debate judge. Evaluate logic, evidence, and persuasion. Give scores and brief commentary after each round.',isFixed:true,stance:'judge'},
+    {e:'👥',bg:'#22d3ee',name:'Crowd',role:'观众AI',roleEn:'Audience AI',soul:'You represent the audience reaction. Express genuine surprise, agreement, or doubt based on what was said. Be concise and human.',isFixed:true,stance:'audience'},
+    {e:'📋',bg:'#34d399',name:'Summary',role:'总结AI',roleEn:'Summary AI',soul:'You are the summary AI. After all rounds, provide a comprehensive neutral summary covering both sides\' best arguments and a final assessment.',isFixed:true,stance:'summary'}
   ],
   court: [
-    {e:'⚖️',bg:'#a78bfa',name:'Judge Chen',role:'法官',soul:'You are a stern judge. Maintain courtroom order, rule on objections, and deliver a verdict based on evidence.',isFixed:true},
-    {e:'🔍',bg:'#fb7185',name:'Prosecutor Kim',role:'检察官',soul:'You represent the prosecution. Build an airtight case with evidence and argue for a guilty verdict.',isFixed:true},
-    {e:'🛡️',bg:'#22d3ee',name:'Defense Park',role:'辩护律师',soul:'You are the defense attorney. Challenge evidence, cite precedents, and argue for acquittal.',isFixed:true},
-    {e:'🧑',bg:'#fbbf24',name:'Witness Lee',role:'证人',soul:'You are a key witness. Answer questions truthfully but you may be nervous or uncertain about some details.',isFixed:true},
-    {e:'👥',bg:'#34d399',name:'Jury',role:'陪审员',soul:'You are a jury member. React to evidence presented and lean toward guilty or not guilty based on what you hear.',isFixed:true}
+    {e:'⚖️',bg:'#a78bfa',name:'Judge Chen',role:'法官',roleEn:'Judge',soul:'You are a stern judge. Maintain courtroom order, rule on objections, and deliver a verdict based on evidence.',isFixed:true},
+    {e:'🔍',bg:'#fb7185',name:'Prosecutor Kim',role:'检察官',roleEn:'Prosecutor',soul:'You represent the prosecution. Build an airtight case with evidence and argue for a guilty verdict.',isFixed:true},
+    {e:'🛡️',bg:'#22d3ee',name:'Defense Park',role:'辩护律师',roleEn:'Defense Attorney',soul:'You are the defense attorney. Challenge evidence, cite precedents, and argue for acquittal.',isFixed:true},
+    {e:'🧑',bg:'#fbbf24',name:'Witness Lee',role:'证人',roleEn:'Witness',soul:'You are a key witness. Answer questions truthfully but you may be nervous or uncertain about some details.',isFixed:true},
+    {e:'👥',bg:'#34d399',name:'Jury',role:'陪审员',roleEn:'Jury Member',soul:'You are a jury member. React to evidence presented and lean toward guilty or not guilty based on what you hear.',isFixed:true}
   ],
   werewolf: [
     {e:'🐺',bg:'#475569',name:'Wolf Shadow',role:'隐藏身份',hiddenRole:'🐺 狼人',soul:'You are a Werewolf. Hide your identity, create false suspicion on others, and protect your wolf partner.',isFixed:true},
@@ -1705,9 +1707,10 @@ function renderBuiltinPreview(containerId, mode){
   var el=G(containerId); if(!el) return;
   var agents=BUILTIN[mode]||[];
   el.innerHTML=agents.map(function(a){
+    var rd=S.uiLang==='en'&&a.roleEn?a.roleEn:a.role;
     return '<div class="ba-item">'
       +'<div class="ba-av" style="background:'+(a.bg||'#6c63ff')+'22">'+(a.e||'🤖')+'</div>'
-      +'<div class="ba-info"><div class="ba-name">'+esc(a.name)+'</div><div class="ba-role">'+esc(a.role)+'</div></div>'
+      +'<div class="ba-info"><div class="ba-name">'+esc(a.name)+'</div><div class="ba-role">'+esc(rd)+'</div></div>'
     +'</div>';
   }).join('');
 }
@@ -1893,13 +1896,14 @@ function renderSessionSidebar(){
   G('wolfSuspects').classList.toggle('hidden',S.session.mode!=='werewolf');
   var it=G('ideaTree'); if(it) it.classList.toggle('hidden',S.session.mode!=='brainstorm');
   renderAgentItems();
+  applyI18n();
 }
 
 function renderAgentItems(){
   if(!S.session) return;
   var el=G('agentItems'); if(!el) return;
   el.innerHTML=S.session.agents.map(function(a){
-    var roleLabel=a.debateRole||a.hiddenRole?'???':a.role;
+    var roleLabel=a.hiddenRole?'???':(S.uiLang==='en'&&a.roleEn?a.roleEn:a.debateRole||a.role);
     return '<div class="sa-item" id="sa-'+a.id+'">'
       +'<div class="sa-av" style="background:'+(a.bg||'#6c63ff')+'22">'+(a.emoji||a.e||'🤖')+'</div>'
       +'<div class="sa-info"><div class="sa-name">'+esc(a.name)+'</div><div class="sa-role">'+esc(roleLabel)+'</div></div>'
@@ -2073,7 +2077,7 @@ function runCourt(){
   var sess=S.session,cfg=sess.config;
   addSysMsg(t('sys_start')+sess.topic);
   G('courtVerdict').classList.remove('hidden');
-  var phases=['开庭陈述','举证阶段','交叉质询','辩护总结'];
+  var phases=S.uiLang==='en'?['Opening Statement','Evidence Phase','Cross-Examination','Closing Arguments']:['开庭陈述','举证阶段','交叉质询','辩护总结'];
   var chain=Promise.resolve();
   for(var r=0;r<cfg.rounds;r++){
     (function(ri){
@@ -2152,7 +2156,8 @@ function runWerewolf(){
 // ─── STORY ───
 function runStory(){
   var sess=S.session,cfg=sess.config;
-  addSysMsg(t('sys_start')+sess.topic+' ('+(cfg.world||'fantasy')+')');
+  var wn={'fantasy':S.uiLang==='en'?'Fantasy':'奇幻','scifi':S.uiLang==='en'?'Sci-Fi':'科幻','modern':S.uiLang==='en'?'Modern':'现代','historical':S.uiLang==='en'?'Historical':'历史','horror':S.uiLang==='en'?'Horror':'恐怖'};
+  addSysMsg(t('sys_start')+sess.topic+' ('+(wn[cfg.world]||cfg.world||'Fantasy')+')');
   var chain=Promise.resolve();
   for(var c=0;c<cfg.chapters;c++){
     (function(ci){
@@ -2317,7 +2322,8 @@ function appendAgentMsg(agent,text,id,round){
   var wrap=document.createElement('div');
   wrap.className='msg-wrap';
   wrap.id='mw-'+id;
-  var roleTag=agent.stance?('<span class="tag '+(agent.stance==='pro'?'purple':agent.stance==='con'?'rose':'gold')+'" style="font-size:9px">'+esc(agent.role)+'</span>'):'';
+  var dispR=S.uiLang==='en'&&agent.roleEn?agent.roleEn:agent.role;
+  var roleTag=agent.stance?('<span class="tag '+(agent.stance==='pro'?'purple':agent.stance==='con'?'rose':'gold')+'" style="font-size:9px">'+esc(dispR)+'</span>'):''; 
   wrap.innerHTML=
     '<div class="msg-hdr">'
       +'<div class="msg-av-wrap" style="background:'+(agent.bg||'#6c63ff')+'22">'+(agent.emoji||agent.e||'🤖')+'</div>'
